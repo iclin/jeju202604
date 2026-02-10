@@ -39,7 +39,7 @@
 </head>
 <body>
 
-    <div id="app" class="max-w-[430px] mx-auto min-h-screen bg-warm-50/50 relative shadow-2xl overflow-hidden">
+    <div id="app" class="max-w-[430px] mx-auto min-h-screen bg-warm-50/50 relative shadow-2xl overflow-hidden flex flex-col">
         
         <!-- 背景裝飾 -->
         <div class="fixed inset-0 z-0 pointer-events-none select-none overflow-hidden max-w-[430px] mx-auto">
@@ -56,8 +56,8 @@
             </div>
         </div>
 
-        <!-- Header (包含日期選單) -->
-        <header class="sticky top-0 z-30 bg-warm-50/95 backdrop-blur-md pt-12 border-b border-warm-200 shadow-sm transition-all duration-300">
+        <!-- Header -->
+        <header class="sticky top-0 z-30 bg-warm-50/95 backdrop-blur-md pt-12 border-b border-warm-200 shadow-sm transition-all duration-300 flex-shrink-0">
             <!-- 標題區 -->
             <div class="px-6 pb-4 flex justify-between items-center">
                 <div>
@@ -71,37 +71,29 @@
                 </div>
             </div>
 
-            <!-- 日期選單 (強制顯示區域) -->
-            <!-- 這裡使用了 v-show 而不是 v-if 確保元素存在，只是切換顯示 -->
-            <div v-show="currentTab === 'itinerary'" class="pb-3 overflow-x-auto hide-scrollbar w-full">
-                <div class="flex px-6 gap-2 min-w-max">
+            <!-- 日期選單 (修正版) -->
+            <div v-if="currentTab === 'itinerary'" class="pb-3 overflow-x-auto hide-scrollbar w-full">
+                <div class="flex px-6 gap-2 whitespace-nowrap">
                     <button v-for="day in itinerary" :key="day.day" @click="currentDay = day.day"
-                        class="relative flex flex-col items-center justify-center px-3 py-2 rounded-xl transition-all duration-200 min-w-[80px] border"
+                        class="relative flex-shrink-0 flex flex-col items-center justify-center px-3 py-2 rounded-xl transition-all duration-200 min-w-[85px] border"
                         :class="currentDay === day.day ? 'bg-fuji-500 text-white shadow-md border-fuji-500 scale-105' : 'bg-white text-warm-500 border-warm-200 hover:bg-warm-50'">
                         
-                        <!-- 橘子標記 -->
                         <span v-if="currentDay === day.day" class="absolute -top-1.5 -right-1.5 text-sm animate-bounce">🍊</span>
-                        
-                        <!-- Day X -->
                         <span class="text-[10px] font-bold uppercase tracking-wider opacity-80 leading-none mb-1">Day {{ day.day }}</span>
-                        
-                        <!-- 日期(週) -->
-                        <span class="text-sm font-bold whitespace-nowrap leading-none">
-                            <!-- 簡易處理日期字串 -->
+                        <span class="text-sm font-bold leading-none">
                             {{ day.date.split(' ')[0] || day.date }}<span class="text-xs ml-0.5">({{ day.weekday.replace('週', '') }})</span>
                         </span>
                     </button>
                 </div>
             </div>
             
-            <!-- 模式提示 -->
             <div v-if="isOfflineMode" class="absolute top-2 right-2 bg-gray-100 text-gray-500 text-[10px] px-2 py-1 rounded-full opacity-70">
                 本機模式
             </div>
         </header>
 
         <!-- Main Content Area -->
-        <main class="pb-28 relative z-10 min-h-[80vh]">
+        <main class="flex-grow pb-28 relative z-10 overflow-y-auto">
             
             <!-- Tab: Itinerary -->
             <div v-if="currentTab === 'itinerary'" class="animate-fade-in pt-6">
@@ -124,7 +116,6 @@
                     <div v-for="item in currentDayData.items" :key="item.id" 
                          class="bg-white/95 backdrop-blur-sm rounded-[2rem] p-5 mb-5 shadow-sm border border-warm-100 relative group transition-all hover:shadow-md">
                         
-                        <!-- Top Row: Time & Category -->
                         <div class="flex justify-between items-start mb-3">
                             <div class="flex items-center gap-3">
                                 <span class="font-bold text-fuji-600 bg-fuji-50 px-3 py-1 rounded-full text-sm font-mono">{{ item.time }}</span>
@@ -133,7 +124,6 @@
                                 </div>
                             </div>
                             
-                            <!-- Journal / Photo Upload -->
                             <label class="cursor-pointer relative">
                                 <input type="file" accept="image/*" class="hidden" @change="handlePhotoUpload($event, item.id)">
                                 <div class="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
@@ -143,11 +133,8 @@
                             </label>
                         </div>
 
-                        <!-- Main Content -->
                         <div class="pl-1 mb-3">
                             <h3 class="text-xl font-bold text-warm-900 mb-1 leading-tight">{{ item.title }}</h3>
-                            
-                            <!-- Tags -->
                             <div v-if="item.tags && item.tags.length > 0" class="flex flex-wrap gap-2 mb-2">
                                 <span v-for="tag in item.tags" :key="tag" 
                                       class="text-[10px] font-bold px-2 py-0.5 rounded-md"
@@ -155,11 +142,9 @@
                                     #{{ tag }}
                                 </span>
                             </div>
-
                             <p class="text-warm-500 text-sm leading-relaxed">{{ item.desc }}</p>
                         </div>
 
-                        <!-- Info Dashboard: Parking & Gas -->
                         <div v-if="item.parking || item.gas" class="bg-warm-50 rounded-xl p-2 mb-3 flex gap-4 text-xs text-warm-600 border border-warm-100">
                             <div v-if="item.parking" class="flex items-center gap-1.5">
                                 <i data-lucide="circle-parking" width="14" class="text-fuji-500"></i>
@@ -171,7 +156,6 @@
                             </div>
                         </div>
 
-                        <!-- Photo Tip -->
                         <div v-if="item.photo_tip" class="border-l-4 border-yellow-300 pl-3 py-1 bg-yellow-50/50 rounded-r-lg mb-3">
                             <div class="flex items-center gap-1.5 text-yellow-600 mb-0.5">
                                 <i data-lucide="lightbulb" width="12"></i>
@@ -180,7 +164,6 @@
                             <p class="text-warm-800 text-xs italic">"{{ item.photo_tip }}"</p>
                         </div>
 
-                        <!-- Action Bar -->
                         <div class="flex items-center justify-between border-t border-warm-100 pt-3 mt-2">
                             <div class="flex gap-1">
                                 <button @click="deleteItem(item.id)" class="w-8 h-8 rounded-full text-red-300 hover:text-red-500 hover:bg-red-50 flex items-center justify-center transition-colors"><i data-lucide="trash-2" width="14"></i></button>
@@ -193,7 +176,6 @@
                         </div>
                     </div>
 
-                    <!-- Weather Tip Footer -->
                     <div v-if="currentDayData.weather_tip" class="bg-gradient-to-r from-fuji-600 to-fuji-500 rounded-3xl p-5 text-white shadow-lg relative overflow-hidden mt-6 mb-8">
                         <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mt-8 -mr-8 blur-xl"></div>
                         <div class="relative z-10">
@@ -277,9 +259,9 @@
                 </div>
                 
                 <!-- Reset Data Button -->
-                <div class="mt-8 text-center">
+                <div class="mt-8 text-center pb-8">
                     <button @click="resetData" class="text-xs text-warm-400 underline p-2">
-                        重新載入預設行程 (如果資料異常請點此)
+                        行程顯示有問題？點此重置 (會清除修改)
                     </button>
                 </div>
             </div>
@@ -306,24 +288,42 @@
 
         <!-- Modals (Overlay) -->
         <div v-if="showModal" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" @click.self="closeModal">
-            <!-- Itinerary Modal -->
+            
+            <!-- Itinerary Modal (Updated with Date Selector) -->
             <div v-if="currentTab === 'itinerary'" class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl animate-fade-in max-h-[90vh] overflow-y-auto">
                 <h3 class="text-xl font-bold text-warm-900 mb-4">{{ editingItem ? '修改行程' : '新增行程' }}</h3>
                 <form @submit.prevent="saveItinerary" class="space-y-4">
-                    <div class="flex gap-4">
-                        <input v-model="form.time" type="time" class="w-1/3 bg-warm-50 rounded-xl px-3 py-2 border border-warm-200" required>
-                        <select v-model="form.category" class="w-2/3 bg-warm-50 rounded-xl px-3 py-2 border border-warm-200">
-                            <option value="spot">📸 景點</option>
-                            <option value="food">🍴 美食</option>
-                            <option value="shopping">🛍️ 購物</option>
-                            <option value="transport">🚗 交通</option>
-                            <option value="hotel">🛏️ 住宿</option>
+                    
+                    <!-- New: Date Selection -->
+                    <div>
+                        <label class="block text-xs font-bold text-warm-500 mb-1">選擇日期</label>
+                        <select v-model="form.day" class="w-full bg-warm-50 rounded-xl px-3 py-2 border border-warm-200 text-sm font-bold text-fuji-600">
+                            <!-- 確保這裡的 v-for 能正確讀取到 itinerary -->
+                            <option v-for="day in itinerary" :key="day.day" :value="day.day">
+                                Day {{ day.day }} - {{ day.date.split(' ')[0] || day.date }} ({{ day.weekday.replace('週', '') }})
+                            </option>
                         </select>
+                    </div>
+
+                    <div class="flex gap-4">
+                        <div class="w-1/3">
+                            <label class="block text-xs font-bold text-warm-500 mb-1">時間</label>
+                            <input v-model="form.time" type="time" class="w-full bg-warm-50 rounded-xl px-3 py-2 border border-warm-200" required>
+                        </div>
+                        <div class="w-2/3">
+                            <label class="block text-xs font-bold text-warm-500 mb-1">分類</label>
+                            <select v-model="form.category" class="w-full bg-warm-50 rounded-xl px-3 py-2 border border-warm-200">
+                                <option value="spot">📸 景點</option>
+                                <option value="food">🍴 美食</option>
+                                <option value="shopping">🛍️ 購物</option>
+                                <option value="transport">🚗 交通</option>
+                                <option value="hotel">🛏️ 住宿</option>
+                            </select>
+                        </div>
                     </div>
                     <input v-model="form.title" type="text" placeholder="名稱 (例：城山日出峰)" class="w-full bg-warm-50 rounded-xl px-3 py-2 border border-warm-200 font-bold" required>
                     <textarea v-model="form.desc" placeholder="詳細描述..." rows="2" class="w-full bg-warm-50 rounded-xl px-3 py-2 border border-warm-200 text-sm"></textarea>
                     
-                    <!-- Advanced Info -->
                     <div class="grid grid-cols-2 gap-3">
                         <input v-model="form.parking" type="text" placeholder="停車資訊" class="bg-warm-50 rounded-xl px-3 py-2 border border-warm-200 text-sm">
                         <input v-model="form.gas" type="text" placeholder="加油備註" class="bg-warm-50 rounded-xl px-3 py-2 border border-warm-200 text-sm">
@@ -367,7 +367,7 @@
 
     <!-- Vue 3 & Firebase Logic -->
     <script type="module">
-        import { createApp, ref, computed, onMounted, reactive, watch, nextTick } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js';
+        import { createApp, ref, computed, onMounted, reactive, watch, nextTick, toRefs } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js';
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { getFirestore, doc, setDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
@@ -382,6 +382,7 @@
   measurementId: "G-DGCGW5ZRLD"
 };
 
+
         const app = createApp({
             setup() {
                 const loading = ref(true);
@@ -391,8 +392,8 @@
                 const editingItem = ref(null);
                 const isOfflineMode = ref(false); 
                 
-                // Updated Form Data with new fields
                 const form = reactive({ 
+                    day: 1, 
                     title: '', time: '12:00', category: 'spot', desc: '', amount: '', payer: 'LIN',
                     tags: [], parking: '', gas: '', photo_tip: '' 
                 });
@@ -408,7 +409,7 @@
                     ]
                 });
 
-                // --- Initial Data with Enhanced Fields ---
+                // --- Initial Data ---
                 const initialItinerary = [
                     { 
                         day: 1, date: "04/07", weekday: "週二", area: "台中 ✈️ 首爾", 
@@ -438,63 +439,14 @@
                             { id: 303, time: "14:30", title: "正房瀑布", desc: "亞洲唯一直接入海的瀑布", category: "spot", tags: ["壯觀"], parking: "入口停車場", photo_tip: "利用慢快門拍攝絲綢般的流水。", map_query: "Jeongbang Waterfall" }
                         ] 
                     },
-                    { 
-                        day: 4, date: "04/10", weekday: "週五", area: "移動日 (南 -> 北)", 
-                        weather_tip: "☁️ 陰天微涼 (16°C)\n更換飯店，請檢查隨身物品。", 
-                        items: [
-                            { id: 401, time: "11:00", title: "Casaloma Hotel", desc: "退房 (Check-out)", category: "hotel", tags: ["退房"], map_query: "Casaloma Hotel Jeju" },
-                            { id: 402, time: "13:00", title: "史努比庭園", desc: "Snoopy Garden 拍照", category: "spot", tags: ["必拍"], parking: "專屬停車場", photo_tip: "戶外庭園有很多大型公仔", map_query: "Snoopy Garden" },
-                            { id: 403, time: "17:00", title: "Hotel Leo Jeju", desc: "Check-in (北部市區)", category: "hotel", tags: ["住宿"], parking: "機械式停車", map_query: "Hotel Leo Jeju" }
-                        ] 
-                    },
-                    { 
-                        day: 5, date: "04/11", weekday: "週六", area: "東部 & 牛島", 
-                        weather_tip: "💨 風大 (15°C)\n海島風大，建議帽子要有繩子，以免吹走。", 
-                        items: [
-                            { id: 501, time: "09:00", title: "城山日出峰", desc: "世界自然遺產", category: "spot", tags: ["必拍"], parking: "免費停車場", photo_tip: "從山下草原往上拍全景", map_query: "Seongsan Ilchulbong" },
-                            { id: 502, time: "11:00", title: "前往牛島", desc: "城山港搭船 (含車上船)", category: "transport", tags: ["交通"], parking: "碼頭排隊", map_query: "Seongsan Port" },
-                            { id: 503, time: "13:00", title: "牛島王子冰淇淋", desc: "花生冰淇淋", category: "food", tags: ["必吃"], map_query: "Udo Prince Ice Cream" },
-                            { id: 504, time: "18:00", title: "Hotel Leo Jeju", desc: "返回飯店", category: "hotel", tags: ["住宿"], map_query: "Hotel Leo Jeju" }
-                        ] 
-                    },
-                    { 
-                        day: 6, date: "04/12", weekday: "週日", area: "濟州市區 & 購物", 
-                        weather_tip: "⛅ 舒適 (19°C)\n市區逛街，適合輕鬆裝扮。", 
-                        items: [
-                            { id: 601, time: "10:00", title: "東門市場", desc: "伴手禮採買 / 柑橘巧克力", category: "shopping", tags: ["必買"], parking: "公有停車場", map_query: "Dongmun Market" },
-                            { id: 602, time: "18:00", title: "Hotel Leo Jeju", desc: "返回飯店", category: "hotel", tags: ["住宿"], map_query: "Hotel Leo Jeju" }
-                        ] 
-                    },
-                    { 
-                        day: 7, date: "04/13", weekday: "週一", area: "中部 & 漢拏山", 
-                        weather_tip: "🏔️ 山區冷 (10°C)\n山上溫差大，務必帶防風保暖外套。", 
-                        items: [
-                            { id: 701, time: "10:00", title: "1100高地", desc: "兜風賞景 / 濕地步道", category: "spot", tags: ["兜風", "必拍"], parking: "路邊停車格", photo_tip: "與鹿雕像合照", map_query: "1100 Highland" },
-                            { id: 702, time: "18:00", title: "Hotel Leo Jeju", desc: "返回飯店", category: "hotel", tags: ["住宿"], map_query: "Hotel Leo Jeju" }
-                        ] 
-                    },
-                    { 
-                        day: 8, date: "04/14", weekday: "週二", area: "濟州 ✈️ 首爾", 
-                        weather_tip: "🌧️ 有雨 (14°C)\n還車日，請預留充足時間。", 
-                        items: [
-                            { id: 801, time: "11:00", title: "Hotel Leo Jeju", desc: "退房 (Check-out)", category: "hotel", tags: ["退房"], map_query: "Hotel Leo Jeju" },
-                            { id: 802, time: "16:30", title: "樂天租車 (還車)", desc: "歸還車輛，搭接駁車去機場", category: "transport", tags: ["還車"], gas: "滿油還車", map_query: "Lotte Rent-a-Car Jeju" },
-                            { id: 803, time: "19:35", title: "濟州機場 (CJU)", desc: "KE1312 飛往金浦", category: "transport", tags: ["航班"], map_query: "Jeju International Airport" },
-                            { id: 804, time: "22:00", title: "Lotte City Hotel Gimpo", desc: "Check-in (Ref: 1房)", category: "hotel", tags: ["住宿"], map_query: "Lotte City Hotel Gimpo Airport" }
-                        ] 
-                    },
-                    { 
-                        day: 9, date: "04/15", weekday: "週三", area: "首爾 ✈️ 台中", 
-                        weather_tip: "✈️ 回程 (16°C)\n檢查護照與隨身行李。", 
-                        items: [
-                            { id: 901, time: "11:00", title: "Lotte City Hotel", desc: "退房 (Check-out)", category: "hotel", tags: ["退房"], map_query: "Lotte City Hotel Gimpo Airport" },
-                            { id: 902, time: "15:15", title: "仁川機場 (ICN)", desc: "KE2031 飛往台中", category: "transport", tags: ["航班"], map_query: "Incheon International Airport" },
-                            { id: 903, time: "17:15", title: "抵達台中 (RMQ)", desc: "溫暖的家", category: "transport", tags: ["航班"], map_query: "Taichung International Airport" }
-                        ] 
-                    }
+                    { day: 4, date: "04/10", weekday: "週五", area: "移動日 (南 -> 北)", weather_tip: "☁️ 陰天微涼 (16°C)\n更換飯店，請檢查隨身物品。", items: [] },
+                    { day: 5, date: "04/11", weekday: "週六", area: "東部 & 牛島", weather_tip: "💨 風大 (15°C)\n海島風大，建議帽子要有繩子，以免吹走。", items: [] },
+                    { day: 6, date: "04/12", weekday: "週日", area: "濟州市區 & 購物", weather_tip: "⛅ 舒適 (19°C)\n市區逛街，適合輕鬆裝扮。", items: [] },
+                    { day: 7, date: "04/13", weekday: "週一", area: "中部 & 漢拏山", weather_tip: "🏔️ 山區冷 (10°C)\n山上溫差大，務必帶防風保暖外套。", items: [] },
+                    { day: 8, date: "04/14", weekday: "週二", area: "濟州 ✈️ 首爾", weather_tip: "🌧️ 有雨 (14°C)\n還車日，請預留充足時間。", items: [] },
+                    { day: 9, date: "04/15", weekday: "週三", area: "首爾 ✈️ 台中", weather_tip: "✈️ 回程 (16°C)\n檢查護照與隨身行李。", items: [] }
                 ];
 
-                // --- Init & Sync Logic ---
                 const TRIP_DOC_ID = 'jeju_trip_2026_v1';
                 let db = null;
 
@@ -515,7 +467,7 @@
                         onSnapshot(doc(db, "trips", TRIP_DOC_ID), (docSnap) => {
                             if (docSnap.exists()) {
                                 const data = docSnap.data();
-                                // 如果雲端資料庫的行程是空的 (可能被誤刪)，使用預設資料
+                                // 強制修復：如果資料庫的行程是空的，使用預設值
                                 if (!data.itinerary || data.itinerary.length === 0) {
                                     dataStore.itinerary = initialItinerary;
                                 } else {
@@ -545,8 +497,9 @@
                     const localData = localStorage.getItem(TRIP_DOC_ID);
                     if (localData) {
                         const parsed = JSON.parse(localData);
-                        // 強制修正：如果本地儲存的是空的行程，使用初始資料覆蓋
+                        // 強制修復：如果本地沒有資料，載入預設
                         if (!parsed.itinerary || parsed.itinerary.length === 0) {
+                            console.log("Local itinerary empty, loading defaults.");
                             dataStore.itinerary = initialItinerary;
                         } else {
                             dataStore.itinerary = parsed.itinerary;
@@ -568,7 +521,6 @@
                     } catch (e) { console.error("Save to Cloud failed", e); }
                 };
 
-                // --- Computed ---
                 const currentDayData = computed(() => {
                     const found = dataStore.itinerary.find(d => d.day === currentDay.value);
                     if (found) return found;
@@ -586,7 +538,6 @@
                     return "目前結清";
                 });
 
-                // --- Methods ---
                 const tabs = [
                     { id: 'itinerary', label: '行程', icon: 'map' },
                     { id: 'expense', label: '分帳', icon: 'wallet' },
@@ -609,13 +560,17 @@
                     return 'bg-gray-100 text-gray-500';
                 };
 
-                // Itinerary Actions
                 const openEditModal = (item = null) => {
                     editingItem.value = item;
                     if (item) {
                         Object.assign(form, { ...item, tags: item.tags || [] });
+                        const day = dataStore.itinerary.find(d => d.items.some(i => i.id === item.id));
+                        form.day = day ? day.day : currentDay.value;
                     } else {
-                        Object.assign(form, { title: '', time: '12:00', category: 'spot', desc: '', id: null, tags: [], parking: '', gas: '', photo_tip: '' });
+                        Object.assign(form, { 
+                            day: currentDay.value,
+                            title: '', time: '12:00', category: 'spot', desc: '', id: null, tags: [], parking: '', gas: '', photo_tip: '' 
+                        });
                     }
                     showModal.value = true;
                 };
@@ -629,26 +584,32 @@
                 };
 
                 const saveItinerary = () => {
-                    const dayIdx = dataStore.itinerary.findIndex(d => d.day === currentDay.value);
-                    if (dayIdx === -1) return;
-
-                    const newItem = { ...form, id: editingItem.value ? editingItem.value.id : Date.now(), map_query: form.title, hasPhoto: editingItem.value ? editingItem.value.hasPhoto : false };
-                    
-                    let items = dataStore.itinerary[dayIdx].items;
                     if (editingItem.value) {
-                        const idx = items.findIndex(i => i.id === editingItem.value.id);
-                        if (idx !== -1) items[idx] = newItem;
-                    } else {
-                        items.push(newItem);
+                        dataStore.itinerary.forEach(d => {
+                            d.items = d.items.filter(i => i.id !== editingItem.value.id);
+                        });
                     }
-                    items.sort((a, b) => a.time.localeCompare(b.time));
+
+                    const targetDayIndex = dataStore.itinerary.findIndex(d => d.day === form.day);
+                    if (targetDayIndex !== -1) {
+                        const newItem = { 
+                            ...form, 
+                            id: editingItem.value ? editingItem.value.id : Date.now(), 
+                            map_query: form.title, 
+                            hasPhoto: editingItem.value ? editingItem.value.hasPhoto : false 
+                        };
+                        delete newItem.day;
+
+                        dataStore.itinerary[targetDayIndex].items.push(newItem);
+                        dataStore.itinerary[targetDayIndex].items.sort((a, b) => a.time.localeCompare(b.time));
+                    }
                     
+                    currentDay.value = form.day;
                     saveData();
                     closeModal();
                 };
 
                 const handlePhotoUpload = (event, itemId) => {
-                    // Simulate upload by toggling state
                     const dayIdx = dataStore.itinerary.findIndex(d => d.day === currentDay.value);
                     const item = dataStore.itinerary[dayIdx].items.find(i => i.id === itemId);
                     if (item) {
@@ -665,7 +626,6 @@
                     saveData();
                 };
 
-                // Expense Actions
                 const openExpenseModal = (item = null) => {
                     editingItem.value = item;
                     if (item) Object.assign(form, item);
@@ -708,9 +668,10 @@
 
                 const resetData = () => {
                     if(confirm("確定要重置所有行程嗎？這會刪除您所有的修改！")) {
-                        dataStore.itinerary = initialItinerary;
+                        dataStore.itinerary = JSON.parse(JSON.stringify(initialItinerary)); 
                         saveData();
                         alert("已重置行程！");
+                        window.location.reload();
                     }
                 };
 
@@ -718,8 +679,7 @@
                 watch(currentDay, () => nextTick(() => lucide.createIcons()));
 
                 return {
-                    loading, isOfflineMode, currentTab, currentDay, itinerary: dataStore.itinerary, currentDayData,
-                    expenses: dataStore.expenses, checklist: dataStore.checklist,
+                    loading, isOfflineMode, currentTab, currentDay, ...toRefs(dataStore), currentDayData,
                     tabs, showModal, editingItem, form,
                     getCategoryColor, getCategoryIcon, getTagColor,
                     openEditModal, saveItinerary, deleteItem, toggleTag, handlePhotoUpload,
