@@ -71,13 +71,12 @@
                 </div>
             </div>
 
-            <!-- 日期選單 (修正版) -->
+            <!-- 日期選單 -->
             <div v-if="currentTab === 'itinerary'" class="pb-3 overflow-x-auto hide-scrollbar w-full">
                 <div class="flex px-6 gap-2 whitespace-nowrap">
                     <button v-for="day in itinerary" :key="day.day" @click="currentDay = day.day"
                         class="relative flex-shrink-0 flex flex-col items-center justify-center px-3 py-2 rounded-xl transition-all duration-200 min-w-[85px] border"
                         :class="currentDay === day.day ? 'bg-fuji-500 text-white shadow-md border-fuji-500 scale-105' : 'bg-white text-warm-500 border-warm-200 hover:bg-warm-50'">
-                        
                         <span v-if="currentDay === day.day" class="absolute -top-1.5 -right-1.5 text-sm animate-bounce">🍊</span>
                         <span class="text-[10px] font-bold uppercase tracking-wider opacity-80 leading-none mb-1">Day {{ day.day }}</span>
                         <span class="text-sm font-bold leading-none">
@@ -268,6 +267,11 @@
 
         </main>
 
+        <!-- Status Bar -->
+        <div v-if="showSaveStatus" class="fixed bottom-24 left-6 z-50 bg-black/70 text-white px-3 py-1 rounded-full text-xs animate-pulse transition-opacity duration-500">
+            已儲存
+        </div>
+
         <!-- Floating Add Button -->
         <button v-if="currentTab !== 'tools'" @click="currentTab === 'expense' ? openExpenseModal() : openEditModal()"
             class="fixed bottom-24 right-6 w-14 h-14 bg-jeju-orange text-white rounded-full shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-40">
@@ -289,16 +293,15 @@
         <!-- Modals (Overlay) -->
         <div v-if="showModal" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" @click.self="closeModal">
             
-            <!-- Itinerary Modal (Updated with Date Selector) -->
+            <!-- Itinerary Modal -->
             <div v-if="currentTab === 'itinerary'" class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl animate-fade-in max-h-[90vh] overflow-y-auto">
                 <h3 class="text-xl font-bold text-warm-900 mb-4">{{ editingItem ? '修改行程' : '新增行程' }}</h3>
                 <form @submit.prevent="saveItinerary" class="space-y-4">
                     
-                    <!-- New: Date Selection -->
+                    <!-- Date Selection -->
                     <div>
                         <label class="block text-xs font-bold text-warm-500 mb-1">選擇日期</label>
                         <select v-model="form.day" class="w-full bg-warm-50 rounded-xl px-3 py-2 border border-warm-200 text-sm font-bold text-fuji-600">
-                            <!-- 確保這裡的 v-for 能正確讀取到 itinerary -->
                             <option v-for="day in itinerary" :key="day.day" :value="day.day">
                                 Day {{ day.day }} - {{ day.date.split(' ')[0] || day.date }} ({{ day.weekday.replace('週', '') }})
                             </option>
@@ -391,6 +394,7 @@
                 const showModal = ref(false);
                 const editingItem = ref(null);
                 const isOfflineMode = ref(false); 
+                const showSaveStatus = ref(false);
                 
                 const form = reactive({ 
                     day: 1, 
@@ -452,11 +456,12 @@
 
                 onMounted(() => {
                     lucide.createIcons();
-                    
+                    // Load local data IMMEDIATELY
+                    loadFromLocal(); 
+
                     if (firebaseConfig.projectId === "your-project-id" || firebaseConfig.apiKey.includes("請貼上")) {
                         console.warn("⚠️ Firebase Config 未設定，切換為本機模式 (LocalStorage)。");
                         isOfflineMode.value = true;
-                        loadFromLocal();
                         return;
                     }
 
@@ -467,45 +472,49 @@
                         onSnapshot(doc(db, "trips", TRIP_DOC_ID), (docSnap) => {
                             if (docSnap.exists()) {
                                 const data = docSnap.data();
-                                // 強制修復：如果資料庫的行程是空的，使用預設值
                                 if (!data.itinerary || data.itinerary.length === 0) {
-                                    dataStore.itinerary = initialItinerary;
+                                    // If cloud is empty but local has data, prefer local. 
+                                    // If both empty, use initial.
+                                    if (dataStore.itinerary.length === 0) {
+                                        dataStore.itinerary = initialItinerary;
+                                    }
                                 } else {
                                     dataStore.itinerary = data.itinerary;
+                                    dataStore.expenses = data.expenses || [];
+                                    dataStore.checklist = data.checklist || dataStore.checklist;
                                 }
-                                dataStore.expenses = data.expenses || [];
-                                dataStore.checklist = data.checklist || dataStore.checklist;
                             } else {
+                                // Doc doesn't exist? Try to save current local state to cloud
                                 saveData(); 
                             }
-                            loading.value = false;
                             nextTick(() => lucide.createIcons());
                         }, (error) => {
                             console.error("🔥 Firebase 連線失敗:", error);
                             isOfflineMode.value = true; 
-                            loadFromLocal();
                         });
 
                     } catch (e) {
                         console.error("Firebase Init Error:", e);
                         isOfflineMode.value = true;
-                        loadFromLocal();
                     }
                 });
 
                 const loadFromLocal = () => {
                     const localData = localStorage.getItem(TRIP_DOC_ID);
                     if (localData) {
-                        const parsed = JSON.parse(localData);
-                        // 強制修復：如果本地沒有資料，載入預設
-                        if (!parsed.itinerary || parsed.itinerary.length === 0) {
-                            console.log("Local itinerary empty, loading defaults.");
+                        try {
+                            const parsed = JSON.parse(localData);
+                            // Critical Fix: Ensure we have valid itinerary structure
+                            if (!parsed.itinerary || parsed.itinerary.length === 0) {
+                                dataStore.itinerary = initialItinerary;
+                            } else {
+                                dataStore.itinerary = parsed.itinerary;
+                            }
+                            dataStore.expenses = parsed.expenses || [];
+                            dataStore.checklist = parsed.checklist || dataStore.checklist;
+                        } catch (e) {
                             dataStore.itinerary = initialItinerary;
-                        } else {
-                            dataStore.itinerary = parsed.itinerary;
                         }
-                        dataStore.expenses = parsed.expenses || [];
-                        dataStore.checklist = parsed.checklist || dataStore.checklist;
                     } else {
                         dataStore.itinerary = initialItinerary;
                     }
@@ -515,6 +524,11 @@
 
                 const saveData = async () => {
                     localStorage.setItem(TRIP_DOC_ID, JSON.stringify(dataStore));
+                    
+                    // Show small save indicator
+                    showSaveStatus.value = true;
+                    setTimeout(() => showSaveStatus.value = false, 2000);
+
                     if (isOfflineMode.value || !db) return;
                     try {
                         await setDoc(doc(db, "trips", TRIP_DOC_ID), { ...dataStore });
@@ -679,7 +693,7 @@
                 watch(currentDay, () => nextTick(() => lucide.createIcons()));
 
                 return {
-                    loading, isOfflineMode, currentTab, currentDay, ...toRefs(dataStore), currentDayData,
+                    loading, isOfflineMode, showSaveStatus, currentTab, currentDay, ...toRefs(dataStore), currentDayData,
                     tabs, showModal, editingItem, form,
                     getCategoryColor, getCategoryIcon, getTagColor,
                     openEditModal, saveItinerary, deleteItem, toggleTag, handlePhotoUpload,
