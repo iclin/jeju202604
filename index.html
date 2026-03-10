@@ -190,19 +190,29 @@
 
             <!-- Tab: Expense (分帳) -->
             <div v-if="currentTab === 'expense'" class="px-6 pt-6 animate-fade-in">
-                <!-- Dashboard -->
+                <!-- Dashboard (升級為四人分帳儀表板) -->
                 <div class="bg-gradient-to-br from-fuji-600 to-fuji-500 rounded-3xl p-6 text-white shadow-lg mb-6 relative overflow-hidden">
                     <div class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
                     <div class="relative z-10">
-                        <div class="text-xs font-medium opacity-80 mb-1">總公費支出 (均分)</div>
-                        <div class="text-3xl font-bold tracking-tight mb-4">₩ {{ totalExpense.toLocaleString() }}</div>
-                        <div class="grid grid-cols-2 gap-2 text-xs mb-3 bg-white/10 p-2 rounded-xl">
-                            <div>LIN墊付: <span class="font-bold">₩{{ totalLin.toLocaleString() }}</span></div>
-                            <div>CHANG墊付: <span class="font-bold">₩{{ totalChang.toLocaleString() }}</span></div>
+                        <div class="flex justify-between items-end mb-4">
+                            <div>
+                                <div class="text-xs font-medium opacity-80 mb-1">總公費支出</div>
+                                <div class="text-3xl font-bold tracking-tight">₩ {{ totalExpense.toLocaleString() }}</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-[10px] opacity-80 mb-1">每人應付 (4人)</div>
+                                <div class="text-lg font-bold">₩ {{ Math.round(perPersonShare).toLocaleString() }}</div>
+                            </div>
                         </div>
-                        <div class="bg-jeju-orange text-white px-3 py-2 rounded-xl text-xs font-bold shadow-sm flex items-center justify-center gap-2">
-                            <i data-lucide="scale" width="14"></i>
-                            <span>{{ settlementText }}</span>
+
+                        <div class="bg-white/10 rounded-xl p-3 text-xs space-y-2 backdrop-blur-sm">
+                            <div v-for="user in userBalances" :key="user.name" class="flex justify-between items-center border-b border-white/10 last:border-0 pb-1.5 last:pb-0">
+                                <div class="w-14 font-bold">{{ user.name }}</div>
+                                <div class="flex-1 text-center opacity-80">墊付: ₩{{ user.paid.toLocaleString() }}</div>
+                                <div class="w-20 text-right font-bold" :class="user.balance >= 0 ? 'text-green-300' : 'text-jeju-pink'">
+                                    {{ user.balance >= 0 ? '應收' : '應付' }} ₩{{ Math.abs(Math.round(user.balance)).toLocaleString() }}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -218,7 +228,8 @@
                                 <div class="font-bold text-warm-900 text-sm">{{ exp.title }}</div>
                                 <div class="text-[10px] text-warm-400 mt-0.5 flex items-center gap-1">
                                     {{ exp.date }} · 
-                                    <span class="font-bold px-1.5 py-0.5 rounded-md text-[9px]" :class="exp.payer === 'LIN' ? 'bg-blue-100 text-blue-600' : 'bg-pink-100 text-pink-600'">{{ exp.payer }}</span>
+                                    <!-- 使用新的動態顏色標籤 -->
+                                    <span class="font-bold px-1.5 py-0.5 rounded-md text-[9px]" :class="getPayerColor(exp.payer)">{{ exp.payer }}</span>
                                 </div>
                             </div>
                         </div>
@@ -352,8 +363,11 @@
                     <div class="flex gap-3">
                         <input v-model.number="form.amount" type="number" placeholder="金額 (KRW)" class="w-2/3 bg-warm-50 rounded-xl px-3 py-2 border border-warm-200" required>
                         <select v-model="form.payer" class="w-1/3 bg-warm-50 rounded-xl px-3 py-2 border border-warm-200">
+                            <!-- 新增另外兩位付款人 -->
                             <option value="LIN">LIN</option>
                             <option value="CHANG">CHANG</option>
+                            <option value="Timothy">Timothy</option>
+                            <option value="小7">小7</option>
                         </select>
                     </div>
                     <div class="flex gap-2 text-xs">
@@ -385,7 +399,6 @@
   measurementId: "G-DGCGW5ZRLD"
 };
 
-
         const app = createApp({
             setup() {
                 const loading = ref(true);
@@ -396,6 +409,9 @@
                 const isOfflineMode = ref(false); 
                 const showSaveStatus = ref(false);
                 
+                // 新增 4 人名單設定
+                const USERS = ["LIN", "CHANG", "Timothy", "小7"];
+
                 const form = reactive({ 
                     day: 1, 
                     title: '', time: '12:00', category: 'spot', desc: '', amount: '', payer: 'LIN',
@@ -541,15 +557,17 @@
                     return { day: currentDay.value, date: '', weekday: '', area: '', weather_tip: '', items: [] };
                 });
                 
+                // --- 全新的 4 人分帳計算邏輯 ---
                 const sortedExpenses = computed(() => [...dataStore.expenses].sort((a, b) => b.id - a.id)); 
                 const totalExpense = computed(() => dataStore.expenses.reduce((acc, cur) => acc + cur.amount, 0));
-                const totalLin = computed(() => dataStore.expenses.filter(e => e.payer === 'LIN').reduce((acc, cur) => acc + cur.amount, 0));
-                const totalChang = computed(() => dataStore.expenses.filter(e => e.payer === 'CHANG').reduce((acc, cur) => acc + cur.amount, 0));
-                const settlementText = computed(() => {
-                    const diff = totalLin.value - (totalExpense.value / 2);
-                    if (diff > 0) return `CHANG 給 LIN ₩${Math.round(diff).toLocaleString()}`;
-                    if (diff < 0) return `LIN 給 CHANG ₩${Math.round(Math.abs(diff)).toLocaleString()}`;
-                    return "目前結清";
+                const perPersonShare = computed(() => totalExpense.value / 4);
+
+                const userBalances = computed(() => {
+                    return USERS.map(user => {
+                        const paid = dataStore.expenses.filter(e => e.payer === user).reduce((acc, cur) => acc + cur.amount, 0);
+                        const balance = paid - perPersonShare.value;
+                        return { name: user, paid, balance };
+                    });
                 });
 
                 const tabs = [
@@ -572,6 +590,17 @@
                     if (tag === '必買') return 'bg-jeju-pink text-white';
                     if (tag === '必拍') return 'bg-fuji-500 text-white';
                     return 'bg-gray-100 text-gray-500';
+                };
+
+                // 新增：取得各付款人的專屬顏色
+                const getPayerColor = (payer) => {
+                    const colors = {
+                        'LIN': 'bg-blue-100 text-blue-600',
+                        'CHANG': 'bg-pink-100 text-pink-600',
+                        'Timothy': 'bg-green-100 text-green-600',
+                        '小7': 'bg-purple-100 text-purple-600'
+                    };
+                    return colors[payer] || 'bg-gray-100 text-gray-600';
                 };
 
                 const openEditModal = (item = null) => {
@@ -695,9 +724,9 @@
                 return {
                     loading, isOfflineMode, showSaveStatus, currentTab, currentDay, ...toRefs(dataStore), currentDayData,
                     tabs, showModal, editingItem, form,
-                    getCategoryColor, getCategoryIcon, getTagColor,
+                    getCategoryColor, getCategoryIcon, getTagColor, getPayerColor,
                     openEditModal, saveItinerary, deleteItem, toggleTag, handlePhotoUpload,
-                    sortedExpenses, totalExpense, totalLin, totalChang, settlementText,
+                    sortedExpenses, totalExpense, perPersonShare, userBalances,
                     openExpenseModal, saveExpense, deleteExpense,
                     toggleCheck, closeModal, openGoogleMaps, resetData
                 };
