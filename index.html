@@ -190,27 +190,31 @@
 
             <!-- Tab: Expense (分帳) -->
             <div v-if="currentTab === 'expense'" class="px-6 pt-6 animate-fade-in">
-                <!-- Dashboard (升級為四人分帳儀表板) -->
-                <div class="bg-gradient-to-br from-fuji-600 to-fuji-500 rounded-3xl p-6 text-white shadow-lg mb-6 relative overflow-hidden">
+                <!-- 升級版：四人結算儀表板 -->
+                <div class="bg-gradient-to-br from-fuji-600 to-fuji-500 rounded-3xl p-5 text-white shadow-lg mb-6 relative overflow-hidden">
                     <div class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
                     <div class="relative z-10">
-                        <div class="flex justify-between items-end mb-4">
-                            <div>
-                                <div class="text-xs font-medium opacity-80 mb-1">總公費支出</div>
-                                <div class="text-3xl font-bold tracking-tight">₩ {{ totalExpense.toLocaleString() }}</div>
-                            </div>
-                            <div class="text-right">
-                                <div class="text-[10px] opacity-80 mb-1">每人應付 (4人)</div>
-                                <div class="text-lg font-bold">₩ {{ Math.round(perPersonShare).toLocaleString() }}</div>
-                            </div>
+                        <div class="mb-4">
+                            <div class="text-xs font-medium opacity-80 mb-1">團隊總花費</div>
+                            <div class="text-3xl font-bold tracking-tight">₩ {{ totalExpense.toLocaleString() }}</div>
                         </div>
 
-                        <div class="bg-white/10 rounded-xl p-3 text-xs space-y-2 backdrop-blur-sm">
-                            <div v-for="user in userBalances" :key="user.name" class="flex justify-between items-center border-b border-white/10 last:border-0 pb-1.5 last:pb-0">
+                        <div class="bg-white/10 rounded-xl p-3 text-xs space-y-1 backdrop-blur-sm">
+                            <div class="flex justify-between font-bold opacity-70 mb-1 border-b border-white/20 pb-1 text-[10px]">
+                                <div class="w-14">成員</div>
+                                <div class="w-20 text-center">已墊付</div>
+                                <div class="w-20 text-center">應分攤</div>
+                                <div class="w-16 text-right">結算</div>
+                            </div>
+                            <div v-for="user in userBalances" :key="user.name" class="flex justify-between items-center border-b border-white/10 last:border-0 py-1.5 last:pb-0">
                                 <div class="w-14 font-bold">{{ user.name }}</div>
-                                <div class="flex-1 text-center opacity-80">墊付: ₩{{ user.paid.toLocaleString() }}</div>
-                                <div class="w-20 text-right font-bold" :class="user.balance >= 0 ? 'text-green-300' : 'text-jeju-pink'">
-                                    {{ user.balance >= 0 ? '應收' : '應付' }} ₩{{ Math.abs(Math.round(user.balance)).toLocaleString() }}
+                                <div class="w-20 text-center text-white/90">₩{{ Math.round(user.paid).toLocaleString() }}</div>
+                                <div class="w-20 text-center text-white/70">₩{{ Math.round(user.owed).toLocaleString() }}</div>
+                                <div class="w-16 text-right font-bold" :class="user.balance > 0 ? 'text-green-300' : (user.balance < 0 ? 'text-pink-300' : 'text-white')">
+                                    <span v-if="user.balance > 0">收 </span>
+                                    <span v-else-if="user.balance < 0">付 </span>
+                                    <span v-else>結清 </span>
+                                    {{ Math.abs(Math.round(user.balance)).toLocaleString() }}
                                 </div>
                             </div>
                         </div>
@@ -221,15 +225,17 @@
                 <div class="space-y-3">
                     <div v-for="exp in sortedExpenses" :key="exp.id" class="bg-white rounded-2xl p-4 shadow-sm border border-warm-100 flex items-center justify-between">
                         <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-full flex items-center justify-center text-white" :class="getCategoryColor(exp.category)">
+                            <div class="w-8 h-8 rounded-full flex items-center justify-center text-white flex-shrink-0" :class="getCategoryColor(exp.category)">
                                 <i :data-lucide="getCategoryIcon(exp.category)" width="14"></i>
                             </div>
                             <div>
-                                <div class="font-bold text-warm-900 text-sm">{{ exp.title }}</div>
-                                <div class="text-[10px] text-warm-400 mt-0.5 flex items-center gap-1">
-                                    {{ exp.date }} · 
-                                    <!-- 使用新的動態顏色標籤 -->
-                                    <span class="font-bold px-1.5 py-0.5 rounded-md text-[9px]" :class="getPayerColor(exp.payer)">{{ exp.payer }}</span>
+                                <div class="font-bold text-warm-900 text-sm leading-tight">{{ exp.title }}</div>
+                                <div class="text-[10px] text-warm-400 mt-1 flex flex-wrap items-center gap-1">
+                                    <span>{{ exp.date }}</span>
+                                    <span>·</span>
+                                    <span class="font-bold px-1.5 py-0.5 rounded text-[9px]" :class="getPayerColor(exp.payer)">{{ exp.payer }} 墊付</span>
+                                    <span>·</span>
+                                    <span class="opacity-70 text-[9px]">{{ exp.sharedBy && exp.sharedBy.length === USERS.length ? '全員平分' : (exp.sharedBy ? exp.sharedBy.join(',') : '') }}</span>
                                 </div>
                             </div>
                         </div>
@@ -309,7 +315,6 @@
                 <h3 class="text-xl font-bold text-warm-900 mb-4">{{ editingItem ? '修改行程' : '新增行程' }}</h3>
                 <form @submit.prevent="saveItinerary" class="space-y-4">
                     
-                    <!-- Date Selection -->
                     <div>
                         <label class="block text-xs font-bold text-warm-500 mb-1">選擇日期</label>
                         <select v-model="form.day" class="w-full bg-warm-50 rounded-xl px-3 py-2 border border-warm-200 text-sm font-bold text-fuji-600">
@@ -355,27 +360,51 @@
                 </form>
             </div>
 
-            <!-- Expense Modal -->
-            <div v-if="currentTab === 'expense'" class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl animate-fade-in">
+            <!-- Expense Modal (進階：選擇墊付與分攤人) -->
+            <div v-if="currentTab === 'expense'" class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl animate-fade-in max-h-[90vh] overflow-y-auto">
                 <h3 class="text-xl font-bold text-warm-900 mb-4">{{ editingItem ? '修改消費' : '記一筆' }} 💰</h3>
                 <form @submit.prevent="saveExpense" class="space-y-4">
-                    <input v-model="form.title" type="text" placeholder="項目名稱" class="w-full bg-warm-50 rounded-xl px-3 py-2 border border-warm-200" required>
-                    <div class="flex gap-3">
-                        <input v-model.number="form.amount" type="number" placeholder="金額 (KRW)" class="w-2/3 bg-warm-50 rounded-xl px-3 py-2 border border-warm-200" required>
-                        <select v-model="form.payer" class="w-1/3 bg-warm-50 rounded-xl px-3 py-2 border border-warm-200">
-                            <!-- 新增另外兩位付款人 -->
-                            <option value="LIN">LIN</option>
-                            <option value="CHANG">CHANG</option>
-                            <option value="Timothy">Timothy</option>
-                            <option value="小7">小7</option>
-                        </select>
+                    <div>
+                        <label class="block text-xs font-bold text-warm-500 mb-1">項目名稱</label>
+                        <input v-model="form.title" type="text" placeholder="例：黑豬肉晚餐" class="w-full bg-warm-50 rounded-xl px-3 py-2 border border-warm-200" required>
                     </div>
-                    <div class="flex gap-2 text-xs">
+                    
+                    <div class="flex gap-3">
+                        <div class="w-2/3">
+                            <label class="block text-xs font-bold text-warm-500 mb-1">總金額 (KRW)</label>
+                            <input v-model.number="form.amount" type="number" placeholder="輸入韓幣金額" class="w-full bg-warm-50 rounded-xl px-3 py-2 border border-warm-200 font-bold text-fuji-600" required>
+                        </div>
+                        <div class="w-1/3">
+                            <label class="block text-xs font-bold text-warm-500 mb-1">先墊付</label>
+                            <select v-model="form.payer" class="w-full bg-warm-50 rounded-xl px-3 py-2 border border-warm-200 text-sm">
+                                <option v-for="user in USERS" :key="'payer'+user" :value="user">{{ user }}</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- 選擇要分攤的人 (預設全選) -->
+                    <div>
+                        <label class="block text-xs font-bold text-warm-500 mb-2">誰要分攤這筆錢？</label>
+                        <div class="flex flex-wrap gap-2">
+                            <label v-for="user in USERS" :key="'share'+user" 
+                                   class="flex items-center gap-1.5 px-3 py-2 rounded-xl border cursor-pointer transition-colors"
+                                   :class="form.sharedBy.includes(user) ? 'border-fuji-500 bg-fuji-50' : 'border-warm-200 bg-warm-50'">
+                                <input type="checkbox" :value="user" v-model="form.sharedBy" class="hidden">
+                                <div class="w-4 h-4 rounded border flex items-center justify-center transition-colors" 
+                                     :class="form.sharedBy.includes(user) ? 'bg-fuji-500 border-fuji-500 text-white' : 'border-warm-300 bg-white'">
+                                    <i v-if="form.sharedBy.includes(user)" data-lucide="check" width="10"></i>
+                                </div>
+                                <span class="text-sm font-bold" :class="form.sharedBy.includes(user) ? 'text-fuji-700' : 'text-warm-500'">{{ user }}</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2 text-xs pt-2 border-t border-warm-100">
                         <button type="button" @click="form.category='food'" :class="form.category==='food'?'bg-fuji-100 text-fuji-600 border-fuji-500':'bg-white text-warm-400'" class="flex-1 py-2 border rounded-lg">食</button>
                         <button type="button" @click="form.category='transport'" :class="form.category==='transport'?'bg-fuji-100 text-fuji-600 border-fuji-500':'bg-white text-warm-400'" class="flex-1 py-2 border rounded-lg">行</button>
                         <button type="button" @click="form.category='shopping'" :class="form.category==='shopping'?'bg-fuji-100 text-fuji-600 border-fuji-500':'bg-white text-warm-400'" class="flex-1 py-2 border rounded-lg">購</button>
                     </div>
-                    <button type="submit" class="w-full bg-fuji-500 text-white font-bold py-3 rounded-xl shadow-md">確認記帳</button>
+                    <button type="submit" class="w-full bg-fuji-500 text-white font-bold py-3 rounded-xl shadow-md hover:bg-fuji-600 transition-colors">確認記帳</button>
                 </form>
             </div>
         </div>
@@ -409,12 +438,13 @@
                 const isOfflineMode = ref(false); 
                 const showSaveStatus = ref(false);
                 
-                // 新增 4 人名單設定
                 const USERS = ["LIN", "CHANG", "Timothy", "小7"];
 
+                // 表單資料結構更新 (加入 sharedBy 陣列，預設全選)
                 const form = reactive({ 
                     day: 1, 
-                    title: '', time: '12:00', category: 'spot', desc: '', amount: '', payer: 'LIN',
+                    title: '', time: '12:00', category: 'spot', desc: '', amount: '', 
+                    payer: 'LIN', sharedBy: [...USERS],
                     tags: [], parking: '', gas: '', photo_tip: '' 
                 });
 
@@ -472,7 +502,6 @@
 
                 onMounted(() => {
                     lucide.createIcons();
-                    // Load local data IMMEDIATELY
                     loadFromLocal(); 
 
                     if (firebaseConfig.projectId === "your-project-id" || firebaseConfig.apiKey.includes("請貼上")) {
@@ -489,8 +518,6 @@
                             if (docSnap.exists()) {
                                 const data = docSnap.data();
                                 if (!data.itinerary || data.itinerary.length === 0) {
-                                    // If cloud is empty but local has data, prefer local. 
-                                    // If both empty, use initial.
                                     if (dataStore.itinerary.length === 0) {
                                         dataStore.itinerary = initialItinerary;
                                     }
@@ -500,7 +527,6 @@
                                     dataStore.checklist = data.checklist || dataStore.checklist;
                                 }
                             } else {
-                                // Doc doesn't exist? Try to save current local state to cloud
                                 saveData(); 
                             }
                             nextTick(() => lucide.createIcons());
@@ -520,7 +546,6 @@
                     if (localData) {
                         try {
                             const parsed = JSON.parse(localData);
-                            // Critical Fix: Ensure we have valid itinerary structure
                             if (!parsed.itinerary || parsed.itinerary.length === 0) {
                                 dataStore.itinerary = initialItinerary;
                             } else {
@@ -540,8 +565,6 @@
 
                 const saveData = async () => {
                     localStorage.setItem(TRIP_DOC_ID, JSON.stringify(dataStore));
-                    
-                    // Show small save indicator
                     showSaveStatus.value = true;
                     setTimeout(() => showSaveStatus.value = false, 2000);
 
@@ -557,16 +580,31 @@
                     return { day: currentDay.value, date: '', weekday: '', area: '', weather_tip: '', items: [] };
                 });
                 
-                // --- 全新的 4 人分帳計算邏輯 ---
+                // --- 全新分帳計算邏輯 (自訂分攤人) ---
                 const sortedExpenses = computed(() => [...dataStore.expenses].sort((a, b) => b.id - a.id)); 
                 const totalExpense = computed(() => dataStore.expenses.reduce((acc, cur) => acc + cur.amount, 0));
-                const perPersonShare = computed(() => totalExpense.value / 4);
 
                 const userBalances = computed(() => {
                     return USERS.map(user => {
-                        const paid = dataStore.expenses.filter(e => e.payer === user).reduce((acc, cur) => acc + cur.amount, 0);
-                        const balance = paid - perPersonShare.value;
-                        return { name: user, paid, balance };
+                        let paid = 0; // 這個人總共先墊了多少錢
+                        let owed = 0; // 根據他有參與的消費，他總共該出多少錢
+
+                        dataStore.expenses.forEach(exp => {
+                            // 計算已墊付
+                            if (exp.payer === user) {
+                                paid += exp.amount;
+                            }
+                            // 計算應分攤 (如果這筆帳他有份)
+                            // 舊資料若沒有 sharedBy，預設為所有人
+                            const sharedBy = exp.sharedBy && exp.sharedBy.length > 0 ? exp.sharedBy : USERS;
+                            if (sharedBy.includes(user)) {
+                                owed += (exp.amount / sharedBy.length);
+                            }
+                        });
+
+                        // 結算 = 墊付 - 應分攤。正數代表別人要給他錢 (應收)，負數代表他要拿錢出來 (應付)
+                        const balance = paid - owed;
+                        return { name: user, paid, owed, balance };
                     });
                 });
 
@@ -592,7 +630,6 @@
                     return 'bg-gray-100 text-gray-500';
                 };
 
-                // 新增：取得各付款人的專屬顏色
                 const getPayerColor = (payer) => {
                     const colors = {
                         'LIN': 'bg-blue-100 text-blue-600',
@@ -671,16 +708,27 @@
 
                 const openExpenseModal = (item = null) => {
                     editingItem.value = item;
-                    if (item) Object.assign(form, item);
-                    else Object.assign(form, { title: '', amount: '', category: 'food', payer: 'LIN', id: null });
+                    if (item) {
+                        // 舊資料相容：如果沒有 sharedBy，預設給所有人
+                        const sharedBy = item.sharedBy && item.sharedBy.length > 0 ? item.sharedBy : [...USERS];
+                        Object.assign(form, { ...item, sharedBy });
+                    } else {
+                        Object.assign(form, { title: '', amount: '', category: 'food', payer: 'LIN', sharedBy: [...USERS], id: null });
+                    }
                     showModal.value = true;
                 };
 
                 const saveExpense = () => {
+                    // 防呆：必須至少選一個人分攤
+                    if (form.sharedBy.length === 0) {
+                        alert("請至少選擇一位分攤人！");
+                        return;
+                    }
+
                     const newItem = { 
                         ...form, 
                         id: editingItem.value ? editingItem.value.id : Date.now(),
-                        date: new Date().toLocaleDateString('en-US', {month:'2-digit', day:'2-digit'}).replace('/', '/') 
+                        date: editingItem.value ? editingItem.value.date : new Date().toLocaleDateString('en-US', {month:'2-digit', day:'2-digit'}).replace('/', '/') 
                     };
 
                     if (editingItem.value) {
@@ -694,7 +742,7 @@
                 };
 
                 const deleteExpense = (id) => {
-                    if(!confirm("確定刪除?")) return;
+                    if(!confirm("確定刪除這筆消費嗎?")) return;
                     dataStore.expenses = dataStore.expenses.filter(e => e.id !== id);
                     saveData();
                 };
@@ -723,10 +771,10 @@
 
                 return {
                     loading, isOfflineMode, showSaveStatus, currentTab, currentDay, ...toRefs(dataStore), currentDayData,
-                    tabs, showModal, editingItem, form,
+                    tabs, showModal, editingItem, form, USERS,
                     getCategoryColor, getCategoryIcon, getTagColor, getPayerColor,
                     openEditModal, saveItinerary, deleteItem, toggleTag, handlePhotoUpload,
-                    sortedExpenses, totalExpense, perPersonShare, userBalances,
+                    sortedExpenses, totalExpense, userBalances,
                     openExpenseModal, saveExpense, deleteExpense,
                     toggleCheck, closeModal, openGoogleMaps, resetData
                 };
