@@ -240,83 +240,33 @@
             </div>
 
             <div v-if="currentTab === 'tools'" class="px-6 pt-6">
+                
                 <div class="mb-8">
-                    <h2 class="text-lg font-bold text-warm-900 mb-3 px-1">資料總匯 (確認單)</h2>
+                    <div class="flex justify-between items-center mb-3 px-1">
+                        <h2 class="text-lg font-bold text-warm-900">資料總匯 (確認單)</h2>
+                    </div>
                     
-                    <div class="bg-white p-4 rounded-2xl shadow-paper border border-warm-100 mb-3">
-                        <div class="flex items-center justify-between cursor-pointer">
-                            <div class="flex items-center gap-4">
-                                <div class="w-12 h-12 rounded-2xl bg-fuji-500 flex items-center justify-center text-white shadow-md">
-                                    <i data-lucide="plane" width="20"></i>
-                                </div>
-                                <div>
-                                    <h3 class="font-bold text-warm-900">航班資訊 (LIN & CHANG)</h3>
-                                    <p class="text-[10px] text-warm-500 mt-0.5">大韓航空 (台中 ↔ 首爾 ↔ 濟州)</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="mt-3 pt-3 border-t border-warm-100 grid grid-cols-1 gap-1.5">
-                            <div class="text-xs text-warm-500 flex justify-between"><span>04.07 台中-仁川</span><span class="font-bold text-warm-700">KE2032 (17:55-21:35)</span></div>
-                            <div class="text-xs text-warm-500 flex justify-between"><span>04.08 金浦-濟州</span><span class="font-bold text-warm-700">KE1075 (10:40-11:55)</span></div>
-                            <div class="text-xs text-warm-500 flex justify-between"><span>04.14 濟州-金浦</span><span class="font-bold text-warm-700">KE1312 (19:35-20:50)</span></div>
-                            <div class="text-xs text-warm-500 flex justify-between"><span>04.15 仁川-台中</span><span class="font-bold text-warm-700">KE2031 (14:45-16:45)</span></div>
-                            <div class="text-xs text-warm-500 flex justify-between mt-1 text-fuji-600"><span>Ref No. (LIN)</span><span class="font-bold">EU4QD7</span></div>
-                            <div class="text-xs text-warm-500 flex justify-between text-fuji-600"><span>Ref No. (CHANG)</span><span class="font-bold">EU5M6C</span></div>
-                        </div>
+                    <div v-if="documents.length === 0" class="text-center py-6 opacity-60 bg-white rounded-2xl border border-warm-100">
+                        <p class="text-sm">尚無資料，點擊下方「+」新增</p>
                     </div>
 
-                    <div class="bg-white p-4 rounded-2xl shadow-paper border border-warm-100 mb-3">
-                        <div class="flex items-center justify-between cursor-pointer">
-                            <div class="flex items-center gap-4">
-                                <div class="w-12 h-12 rounded-2xl bg-fuji-600 flex items-center justify-center text-white shadow-md">
-                                    <i data-lucide="plane" width="20"></i>
-                                </div>
-                                <div>
-                                    <h3 class="font-bold text-warm-900">航班資訊 (Timothy & 小7)</h3>
-                                    <p class="text-[10px] text-warm-500 mt-0.5">德威航空 (桃園 ↔ 濟州)</p>
-                                </div>
-                            </div>
+                    <div v-for="doc in documents" :key="doc.id" class="bg-white p-4 rounded-2xl shadow-paper border border-warm-100 mb-3 relative group">
+                        <div class="absolute top-3 right-3 flex gap-2">
+                            <button @click="deleteDoc(doc.id)" class="text-warm-300 hover:text-red-400 transition-colors p-1"><i data-lucide="trash-2" width="14"></i></button>
+                            <button @click="openDocModal(doc)" class="text-warm-300 hover:text-fuji-500 transition-colors p-1"><i data-lucide="pencil" width="14"></i></button>
                         </div>
-                        <div class="mt-3 pt-3 border-t border-warm-100 grid grid-cols-1 gap-1.5">
-                            <div class="text-xs text-warm-500 flex justify-between"><span>04.08 桃園-濟州</span><span class="font-bold text-warm-700">TW688 (14:25-17:30)</span></div>
-                            <div class="text-xs text-warm-500 flex justify-between"><span>04.14 濟州-桃園</span><span class="font-bold text-warm-700">TW687 (12:20-13:25)</span></div>
-                            <div class="text-xs text-warm-500 flex justify-between mt-1 text-fuji-600"><span>Ref No.</span><span class="font-bold">SJ62M3</span></div>
-                        </div>
-                    </div>
-
-                    <div class="bg-white p-4 rounded-2xl shadow-paper border border-warm-100 mb-3">
-                        <div class="flex items-center gap-4 mb-3">
-                            <div class="w-12 h-12 rounded-2xl bg-jeju-orange flex items-center justify-center text-white shadow-md">
-                                <i data-lucide="car" width="20"></i>
+                        
+                        <div class="flex items-center gap-4 mb-3 pr-16">
+                            <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-md flex-shrink-0" :class="doc.color">
+                                <i :data-lucide="doc.icon" width="20"></i>
                             </div>
                             <div>
-                                <h3 class="font-bold text-warm-900">樂天租車 (自駕)</h3>
-                                <p class="text-[10px] text-warm-500 mt-0.5">SONATA (G) 4/8 - 4/14</p>
+                                <h3 class="font-bold text-warm-900 leading-tight">{{ doc.title }}</h3>
+                                <p v-if="doc.subtitle" class="text-[10px] text-warm-500 mt-0.5">{{ doc.subtitle }}</p>
                             </div>
                         </div>
-                        <div class="pt-3 border-t border-warm-100 grid grid-cols-1 gap-1.5">
-                            <div class="text-xs text-warm-500 flex justify-between"><span>取車</span><span class="font-bold text-warm-700">04.08 12:30</span></div>
-                            <div class="text-xs text-warm-500 flex justify-between"><span>還車</span><span class="font-bold text-warm-700">04.14 17:00</span></div>
-                            <div class="text-xs text-warm-500 flex justify-between"><span>費用</span><span class="font-bold text-warm-700">492,000 KRW</span></div>
-                            <div class="text-xs text-warm-500 flex justify-between"><span>預約號碼</span><span class="font-bold text-warm-700">2622095402</span></div>
-                        </div>
-                    </div>
-
-                    <div class="bg-white p-4 rounded-2xl shadow-paper border border-warm-100 mb-3">
-                        <div class="flex items-center gap-4 mb-3">
-                            <div class="w-12 h-12 rounded-2xl bg-jeju-green flex items-center justify-center text-white shadow-md">
-                                <i data-lucide="hotel" width="20"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-warm-900">住宿清單</h3>
-                                <p class="text-[10px] text-warm-500 mt-0.5">全程住宿確認</p>
-                            </div>
-                        </div>
-                        <div class="pt-3 border-t border-warm-100 grid grid-cols-1 gap-1.5">
-                            <div class="text-xs text-warm-500 flex justify-between"><span>4/7 - 4/8</span><span class="font-bold text-warm-700">Lotte City Hotel Gimpo Airport</span></div>
-                            <div class="text-xs text-warm-500 flex justify-between"><span>4/8 - 4/10</span><span class="font-bold text-warm-700">Casaloma Hotel</span></div>
-                            <div class="text-xs text-warm-500 flex justify-between"><span>4/10 - 4/14</span><span class="font-bold text-warm-700">Hotel Leo</span></div>
-                            <div class="text-xs text-warm-500 flex justify-between"><span>4/14 - 4/15</span><span class="font-bold text-warm-700">Lotte City Hotel Gimpo Airport</span></div>
+                        <div class="pt-3 border-t border-warm-100 whitespace-pre-line text-xs text-warm-600 leading-relaxed font-medium">
+                            {{ doc.content }}
                         </div>
                     </div>
                 </div>
@@ -324,10 +274,10 @@
                 <div class="bg-white rounded-2xl p-5 shadow-sm border border-warm-100 mb-6">
                     <h3 class="font-bold text-warm-900 mb-3 flex items-center gap-2"><i data-lucide="check-square" class="text-fuji-500"></i> 行李清單</h3>
                     <div v-for="(item, idx) in checklist" :key="idx" @click="toggleCheck(idx)" class="flex items-center gap-3 py-2 border-b border-warm-50 last:border-0 cursor-pointer">
-                        <div class="w-5 h-5 rounded border transition-colors flex items-center justify-center" :class="item.checked ? 'bg-jeju-green border-jeju-green' : 'border-warm-300'">
+                        <div class="w-5 h-5 rounded border transition-colors flex items-center justify-center flex-shrink-0" :class="item.checked ? 'bg-jeju-green border-jeju-green' : 'border-warm-300'">
                             <i v-if="item.checked" data-lucide="check" width="14" class="text-white"></i>
                         </div>
-                        <span :class="{'line-through text-warm-300': item.checked, 'text-warm-900': !item.checked}">{{ item.text }}</span>
+                        <span class="text-sm" :class="{'line-through text-warm-300': item.checked, 'text-warm-900': !item.checked}">{{ item.text }}</span>
                     </div>
                 </div>
                 <div class="bg-red-50 rounded-2xl p-5 border border-red-100">
@@ -340,7 +290,7 @@
                 
                 <div class="mt-8 text-center pb-8">
                     <button @click="resetData" class="text-xs font-bold text-red-400 bg-red-50 rounded-full px-4 py-2 border border-red-100">
-                        ⚠️ 行程顯示有問題？點此重置 (會清除修改)
+                        ⚠️ 顯示有問題？點此重置為初始資料
                     </button>
                 </div>
             </div>
@@ -351,7 +301,7 @@
             已儲存
         </div>
 
-        <button v-if="currentTab !== 'tools'" @click="currentTab === 'expense' ? openExpenseModal() : openEditModal()"
+        <button @click="currentTab === 'expense' ? openExpenseModal() : (currentTab === 'tools' ? openDocModal() : openEditModal())"
             class="fixed bottom-24 right-6 w-14 h-14 bg-jeju-orange text-white rounded-full shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-40">
             <i data-lucide="plus" width="28"></i>
         </button>
@@ -463,6 +413,49 @@
                     <button type="submit" class="w-full bg-fuji-500 text-white font-bold py-3 rounded-xl shadow-md hover:bg-fuji-600 transition-colors">確認記帳</button>
                 </form>
             </div>
+
+            <div v-if="currentTab === 'tools'" class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl animate-fade-in max-h-[90vh] overflow-y-auto">
+                <h3 class="text-xl font-bold text-warm-900 mb-4">{{ editingItem ? '修改資料' : '新增資料' }} 📋</h3>
+                <form @submit.prevent="saveDoc" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-warm-500 mb-1">標題</label>
+                        <input v-model="docForm.title" type="text" placeholder="例：航班資訊" class="w-full bg-warm-50 rounded-xl px-3 py-2 border border-warm-200 font-bold" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-warm-500 mb-1">副標題 (選填)</label>
+                        <input v-model="docForm.subtitle" type="text" placeholder="例：大韓航空" class="w-full bg-warm-50 rounded-xl px-3 py-2 border border-warm-200">
+                    </div>
+                    <div class="flex gap-3">
+                        <div class="w-1/2">
+                            <label class="block text-xs font-bold text-warm-500 mb-1">圖示</label>
+                            <select v-model="docForm.icon" class="w-full bg-warm-50 rounded-xl px-3 py-2 border border-warm-200 text-sm">
+                                <option value="plane">✈️ 飛機</option>
+                                <option value="car">🚗 汽車</option>
+                                <option value="hotel">🛏️ 飯店</option>
+                                <option value="file-text">📄 文件</option>
+                                <option value="ticket">🎫 票券</option>
+                                <option value="credit-card">💳 信用卡</option>
+                            </select>
+                        </div>
+                        <div class="w-1/2">
+                            <label class="block text-xs font-bold text-warm-500 mb-1">顏色主題</label>
+                            <select v-model="docForm.color" class="w-full bg-warm-50 rounded-xl px-3 py-2 border border-warm-200 text-sm">
+                                <option value="bg-fuji-500">藍色</option>
+                                <option value="bg-jeju-orange">橘色</option>
+                                <option value="bg-jeju-green">綠色</option>
+                                <option value="bg-jeju-pink">粉色</option>
+                                <option value="bg-warm-500">灰色</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-warm-500 mb-1">詳細內容 (可換行)</label>
+                        <textarea v-model="docForm.content" placeholder="輸入詳細資訊，換行會自動保留排版..." rows="6" class="w-full bg-warm-50 rounded-xl px-3 py-2 border border-warm-200 text-sm leading-relaxed" required></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-fuji-500 text-white font-bold py-3 rounded-xl shadow-md hover:bg-fuji-600 transition-colors">確認儲存</button>
+                </form>
+            </div>
+
         </div>
 
     </div>
@@ -502,9 +495,15 @@
                     tags: [], parking: '', gas: '', photo_tip: '' 
                 });
 
+                // Documents Form
+                const docForm = reactive({
+                    id: null, title: '', subtitle: '', icon: 'file-text', color: 'bg-warm-500', content: ''
+                });
+
                 const dataStore = reactive({
                     itinerary: [], 
                     expenses: [],
+                    documents: [], // 新增 documents 陣列
                     checklist: [
                         { text: "護照 (效期6個月)", checked: false },
                         { text: "國際駕照 (IDP)", checked: false },
@@ -530,7 +529,7 @@
                         items: [
                             { id: 201, time: "10:40", title: "金浦機場 (GMP) 出發", desc: "KE1075 大韓航空 (LIN, CHANG)", category: "transport", tags: ["航班"], map_query: "Gimpo International Airport" },
                             { id: 202, time: "11:55", title: "抵達濟州機場 (CJU)", desc: "LIN, CHANG 抵達", category: "transport", tags: ["航班"], map_query: "Jeju International Airport" },
-                            { id: 203, time: "12:30", title: "樂天租車 (取車)", desc: "SONATA (G) Ref: 2622095402", category: "transport", tags: ["租車"], parking: "", gas: "滿油取車", photo_tip: "記得拍下車身刮痕存證！", map_query: "Lotte Rent-a-Car Jeju" },
+                            { id: 203, time: "12:30", title: "樂天租車 (取車)", desc: "SANTAFE 4WD (G) 7P SUV Ref: 2622174376", category: "transport", tags: ["租車"], parking: "", gas: "滿油取車", photo_tip: "記得拍下車身刮痕存證！", map_query: "Lotte Rent-a-Car Jeju" },
                             { id: 204, time: "14:25", title: "桃園機場 (TPE) 出發", desc: "TW688 德威航空 (Timothy, 小7)", category: "transport", tags: ["航班"], map_query: "Taoyuan International Airport" },
                             { id: 205, time: "15:00", title: "涯月海邊咖啡", desc: "Handam Coastal Walk 散步", category: "food", tags: ["必拍", "必吃"], parking: "專用停車場(免費)", gas: "", photo_tip: "坐在戶外透明椅上，以大海為背景。", map_query: "Aewol Cafe Street" },
                             { id: 206, time: "17:30", title: "抵達濟州機場 (CJU)", desc: "Timothy, 小7 抵達會合", category: "transport", tags: ["航班"], map_query: "Jeju International Airport" },
@@ -579,6 +578,13 @@
                     }
                 ];
 
+                const initialDocuments = [
+                    { id: 1, icon: 'plane', color: 'bg-fuji-500', title: '航班資訊 (LIN & CHANG)', subtitle: '大韓航空 (台中 ↔ 首爾 ↔ 濟州)', content: "04.07 台中-仁川: KE2032 (17:55-21:35)\n04.08 金浦-濟州: KE1075 (10:40-11:55)\n04.14 濟州-金浦: KE1312 (19:35-20:50)\n04.15 仁川-台中: KE2031 (14:45-16:45)\n\nRef No. (LIN): EU4QD7\nRef No. (CHANG): EU5M6C" },
+                    { id: 2, icon: 'plane', color: 'bg-fuji-600', title: '航班資訊 (Timothy & 小7)', subtitle: '德威航空 (桃園 ↔ 濟州)', content: "04.08 桃園-濟州: TW688 (14:25-17:30)\n04.14 濟州-桃園: TW687 (12:20-13:25)\n\nRef No.: SJ62M3" },
+                    { id: 3, icon: 'car', color: 'bg-jeju-orange', title: '樂天租車 (自駕)', subtitle: 'SANTAFE 4WD (G) 7P 4/8 - 4/14', content: "取車：04.08 12:30\n還車：04.14 17:00\n費用：633,800 KRW\n預約號碼：2622174376" },
+                    { id: 4, icon: 'hotel', color: 'bg-jeju-green', title: '住宿清單', subtitle: '全程住宿確認', content: "4/7 - 4/8：Lotte City Hotel Gimpo Airport\n4/8 - 4/10：Casaloma Hotel\n4/10 - 4/14：Hotel Leo\n4/14 - 4/15：Lotte City Hotel Gimpo Airport" }
+                ];
+
                 const TRIP_DOC_ID = 'jeju_trip_2026_v1';
                 let db = null;
 
@@ -600,14 +606,13 @@
                             if (docSnap.exists()) {
                                 const data = docSnap.data();
                                 if (!data.itinerary || data.itinerary.length === 0) {
-                                    if (dataStore.itinerary.length === 0) {
-                                        dataStore.itinerary = initialItinerary;
-                                    }
+                                    if (dataStore.itinerary.length === 0) dataStore.itinerary = initialItinerary;
                                 } else {
                                     dataStore.itinerary = data.itinerary;
-                                    dataStore.expenses = data.expenses || [];
-                                    dataStore.checklist = data.checklist || dataStore.checklist;
                                 }
+                                dataStore.expenses = data.expenses || [];
+                                dataStore.documents = data.documents && data.documents.length > 0 ? data.documents : initialDocuments;
+                                dataStore.checklist = data.checklist || dataStore.checklist;
                             } else {
                                 saveData(); 
                             }
@@ -628,18 +633,17 @@
                     if (localData) {
                         try {
                             const parsed = JSON.parse(localData);
-                            if (!parsed.itinerary || parsed.itinerary.length === 0) {
-                                dataStore.itinerary = initialItinerary;
-                            } else {
-                                dataStore.itinerary = parsed.itinerary;
-                            }
+                            dataStore.itinerary = (!parsed.itinerary || parsed.itinerary.length === 0) ? initialItinerary : parsed.itinerary;
                             dataStore.expenses = parsed.expenses || [];
+                            dataStore.documents = (!parsed.documents || parsed.documents.length === 0) ? initialDocuments : parsed.documents;
                             dataStore.checklist = parsed.checklist || dataStore.checklist;
                         } catch (e) {
                             dataStore.itinerary = initialItinerary;
+                            dataStore.documents = initialDocuments;
                         }
                     } else {
                         dataStore.itinerary = initialItinerary;
+                        dataStore.documents = initialDocuments;
                     }
                     loading.value = false;
                     nextTick(() => lucide.createIcons());
@@ -717,6 +721,7 @@
                     return colors[payer] || 'bg-gray-100 text-gray-600';
                 };
 
+                // Form Modal Openers
                 const openEditModal = (item = null) => {
                     editingItem.value = item;
                     if (item) {
@@ -732,57 +737,6 @@
                     showModal.value = true;
                 };
 
-                const toggleTag = (tag) => {
-                    if (form.tags.includes(tag)) {
-                        form.tags = form.tags.filter(t => t !== tag);
-                    } else {
-                        form.tags.push(tag);
-                    }
-                };
-
-                const saveItinerary = () => {
-                    if (editingItem.value) {
-                        dataStore.itinerary.forEach(d => {
-                            d.items = d.items.filter(i => i.id !== editingItem.value.id);
-                        });
-                    }
-
-                    const targetDayIndex = dataStore.itinerary.findIndex(d => d.day === form.day);
-                    if (targetDayIndex !== -1) {
-                        const newItem = { 
-                            ...form, 
-                            id: editingItem.value ? editingItem.value.id : Date.now(), 
-                            map_query: form.title, 
-                            hasPhoto: editingItem.value ? editingItem.value.hasPhoto : false 
-                        };
-                        delete newItem.day;
-
-                        dataStore.itinerary[targetDayIndex].items.push(newItem);
-                        dataStore.itinerary[targetDayIndex].items.sort((a, b) => a.time.localeCompare(b.time));
-                    }
-                    
-                    currentDay.value = form.day;
-                    saveData();
-                    closeModal();
-                };
-
-                const handlePhotoUpload = (event, itemId) => {
-                    const dayIdx = dataStore.itinerary.findIndex(d => d.day === currentDay.value);
-                    const item = dataStore.itinerary[dayIdx].items.find(i => i.id === itemId);
-                    if (item) {
-                        item.hasPhoto = true;
-                        saveData();
-                        alert("📸 照片上傳成功！(模擬)");
-                    }
-                };
-
-                const deleteItem = (id) => {
-                    if(!confirm("確定刪除?")) return;
-                    const day = dataStore.itinerary.find(d => d.day === currentDay.value);
-                    day.items = day.items.filter(i => i.id !== id);
-                    saveData();
-                };
-
                 const openExpenseModal = (item = null) => {
                     editingItem.value = item;
                     if (item) {
@@ -794,18 +748,44 @@
                     showModal.value = true;
                 };
 
-                const saveExpense = () => {
-                    if (form.sharedBy.length === 0) {
-                        alert("請至少選擇一位分攤人！");
-                        return;
+                const openDocModal = (item = null) => {
+                    editingItem.value = item;
+                    if (item) {
+                        Object.assign(docForm, item);
+                    } else {
+                        Object.assign(docForm, { id: null, title: '', subtitle: '', icon: 'file-text', color: 'bg-warm-500', content: '' });
                     }
+                    showModal.value = true;
+                };
 
-                    const newItem = { 
-                        ...form, 
-                        id: editingItem.value ? editingItem.value.id : Date.now(),
-                        date: editingItem.value ? editingItem.value.date : new Date().toLocaleDateString('en-US', {month:'2-digit', day:'2-digit'}).replace('/', '/') 
-                    };
+                const toggleTag = (tag) => {
+                    if (form.tags.includes(tag)) {
+                        form.tags = form.tags.filter(t => t !== tag);
+                    } else {
+                        form.tags.push(tag);
+                    }
+                };
 
+                // Save Methods
+                const saveItinerary = () => {
+                    if (editingItem.value) {
+                        dataStore.itinerary.forEach(d => { d.items = d.items.filter(i => i.id !== editingItem.value.id); });
+                    }
+                    const targetDayIndex = dataStore.itinerary.findIndex(d => d.day === form.day);
+                    if (targetDayIndex !== -1) {
+                        const newItem = { ...form, id: editingItem.value ? editingItem.value.id : Date.now(), map_query: form.title, hasPhoto: editingItem.value ? editingItem.value.hasPhoto : false };
+                        delete newItem.day;
+                        dataStore.itinerary[targetDayIndex].items.push(newItem);
+                        dataStore.itinerary[targetDayIndex].items.sort((a, b) => a.time.localeCompare(b.time));
+                    }
+                    currentDay.value = form.day;
+                    saveData();
+                    closeModal();
+                };
+
+                const saveExpense = () => {
+                    if (form.sharedBy.length === 0) { alert("請至少選擇一位分攤人！"); return; }
+                    const newItem = { ...form, id: editingItem.value ? editingItem.value.id : Date.now(), date: editingItem.value ? editingItem.value.date : new Date().toLocaleDateString('en-US', {month:'2-digit', day:'2-digit'}).replace('/', '/') };
                     if (editingItem.value) {
                         const idx = dataStore.expenses.findIndex(e => e.id === editingItem.value.id);
                         if (idx !== -1) dataStore.expenses[idx] = newItem;
@@ -816,10 +796,47 @@
                     closeModal();
                 };
 
+                const saveDoc = () => {
+                    const newDoc = { ...docForm, id: editingItem.value ? editingItem.value.id : Date.now() };
+                    if (editingItem.value) {
+                        const idx = dataStore.documents.findIndex(d => d.id === editingItem.value.id);
+                        if (idx !== -1) dataStore.documents[idx] = newDoc;
+                    } else {
+                        dataStore.documents.push(newDoc);
+                    }
+                    saveData();
+                    closeModal();
+                };
+
+                // Delete Methods
+                const deleteItem = (id) => {
+                    if(!confirm("確定刪除?")) return;
+                    const day = dataStore.itinerary.find(d => d.day === currentDay.value);
+                    day.items = day.items.filter(i => i.id !== id);
+                    saveData();
+                };
+
                 const deleteExpense = (id) => {
                     if(!confirm("確定刪除這筆消費嗎?")) return;
                     dataStore.expenses = dataStore.expenses.filter(e => e.id !== id);
                     saveData();
+                };
+
+                const deleteDoc = (id) => {
+                    if(!confirm("確定刪除這份資料嗎?")) return;
+                    dataStore.documents = dataStore.documents.filter(d => d.id !== id);
+                    saveData();
+                };
+
+                // Misc Methods
+                const handlePhotoUpload = (event, itemId) => {
+                    const dayIdx = dataStore.itinerary.findIndex(d => d.day === currentDay.value);
+                    const item = dataStore.itinerary[dayIdx].items.find(i => i.id === itemId);
+                    if (item) {
+                        item.hasPhoto = true;
+                        saveData();
+                        alert("📸 照片上傳成功！(模擬)");
+                    }
                 };
 
                 const toggleCheck = (idx) => {
@@ -828,13 +845,12 @@
                 };
 
                 const closeModal = () => { showModal.value = false; };
-                const openGoogleMaps = (query) => {
-                    window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`, '_blank');
-                };
+                const openGoogleMaps = (query) => { window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`, '_blank'); };
 
                 const resetData = () => {
                     if(confirm("確定要重置所有行程嗎？這會刪除您所有的修改！")) {
                         dataStore.itinerary = JSON.parse(JSON.stringify(initialItinerary)); 
+                        dataStore.documents = JSON.parse(JSON.stringify(initialDocuments)); 
                         saveData();
                         alert("已重置行程！請重新整理頁面。");
                         window.location.reload();
@@ -846,9 +862,10 @@
 
                 return {
                     loading, isOfflineMode, showSaveStatus, currentTab, currentDay, ...toRefs(dataStore), currentDayData,
-                    tabs, showModal, editingItem, form, USERS,
+                    tabs, showModal, editingItem, form, docForm, USERS,
                     getCategoryColor, getCategoryIcon, getTagColor, getPayerColor,
                     openEditModal, saveItinerary, deleteItem, toggleTag, handlePhotoUpload,
+                    openDocModal, saveDoc, deleteDoc,
                     sortedExpenses, totalExpense, userBalances,
                     openExpenseModal, saveExpense, deleteExpense,
                     toggleCheck, closeModal, openGoogleMaps, resetData
