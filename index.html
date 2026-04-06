@@ -718,4 +718,143 @@
                 };
 
                 const openEditModal = (item = null) => {
-                    editingItem
+                    editingItem.value = item;
+                    if (item) {
+                        Object.assign(form, { ...item, tags: item.tags || [] });
+                        const day = dataStore.itinerary.find(d => d.items.some(i => i.id === item.id));
+                        form.day = day ? day.day : currentDay.value;
+                    } else {
+                        Object.assign(form, { 
+                            day: currentDay.value,
+                            title: '', time: '12:00', category: 'spot', desc: '', id: null, tags: [], parking: '', gas: '', photo_tip: '' 
+                        });
+                    }
+                    showModal.value = true;
+                };
+
+                const toggleTag = (tag) => {
+                    if (form.tags.includes(tag)) {
+                        form.tags = form.tags.filter(t => t !== tag);
+                    } else {
+                        form.tags.push(tag);
+                    }
+                };
+
+                const saveItinerary = () => {
+                    if (editingItem.value) {
+                        dataStore.itinerary.forEach(d => {
+                            d.items = d.items.filter(i => i.id !== editingItem.value.id);
+                        });
+                    }
+
+                    const targetDayIndex = dataStore.itinerary.findIndex(d => d.day === form.day);
+                    if (targetDayIndex !== -1) {
+                        const newItem = { 
+                            ...form, 
+                            id: editingItem.value ? editingItem.value.id : Date.now(), 
+                            map_query: form.title, 
+                            hasPhoto: editingItem.value ? editingItem.value.hasPhoto : false 
+                        };
+                        delete newItem.day;
+
+                        dataStore.itinerary[targetDayIndex].items.push(newItem);
+                        dataStore.itinerary[targetDayIndex].items.sort((a, b) => a.time.localeCompare(b.time));
+                    }
+                    
+                    currentDay.value = form.day;
+                    saveData();
+                    closeModal();
+                };
+
+                const handlePhotoUpload = (event, itemId) => {
+                    const dayIdx = dataStore.itinerary.findIndex(d => d.day === currentDay.value);
+                    const item = dataStore.itinerary[dayIdx].items.find(i => i.id === itemId);
+                    if (item) {
+                        item.hasPhoto = true;
+                        saveData();
+                        alert("📸 照片上傳成功！(模擬)");
+                    }
+                };
+
+                const deleteItem = (id) => {
+                    if(!confirm("確定刪除?")) return;
+                    const day = dataStore.itinerary.find(d => d.day === currentDay.value);
+                    day.items = day.items.filter(i => i.id !== id);
+                    saveData();
+                };
+
+                const openExpenseModal = (item = null) => {
+                    editingItem.value = item;
+                    if (item) {
+                        const sharedBy = item.sharedBy && item.sharedBy.length > 0 ? item.sharedBy : [...USERS];
+                        Object.assign(form, { ...item, sharedBy });
+                    } else {
+                        Object.assign(form, { title: '', amount: '', category: 'food', payer: 'LIN', sharedBy: [...USERS], id: null });
+                    }
+                    showModal.value = true;
+                };
+
+                const saveExpense = () => {
+                    if (form.sharedBy.length === 0) {
+                        alert("請至少選擇一位分攤人！");
+                        return;
+                    }
+
+                    const newItem = { 
+                        ...form, 
+                        id: editingItem.value ? editingItem.value.id : Date.now(),
+                        date: editingItem.value ? editingItem.value.date : new Date().toLocaleDateString('en-US', {month:'2-digit', day:'2-digit'}).replace('/', '/') 
+                    };
+
+                    if (editingItem.value) {
+                        const idx = dataStore.expenses.findIndex(e => e.id === editingItem.value.id);
+                        if (idx !== -1) dataStore.expenses[idx] = newItem;
+                    } else {
+                        dataStore.expenses.push(newItem);
+                    }
+                    saveData();
+                    closeModal();
+                };
+
+                const deleteExpense = (id) => {
+                    if(!confirm("確定刪除這筆消費嗎?")) return;
+                    dataStore.expenses = dataStore.expenses.filter(e => e.id !== id);
+                    saveData();
+                };
+
+                const toggleCheck = (idx) => {
+                    dataStore.checklist[idx].checked = !dataStore.checklist[idx].checked;
+                    saveData();
+                };
+
+                const closeModal = () => { showModal.value = false; };
+                const openGoogleMaps = (query) => {
+                    window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`, '_blank');
+                };
+
+                const resetData = () => {
+                    if(confirm("確定要重置所有行程嗎？這會刪除您所有的修改！")) {
+                        dataStore.itinerary = JSON.parse(JSON.stringify(initialItinerary)); 
+                        saveData();
+                        alert("已重置行程！請重新整理頁面。");
+                        window.location.reload();
+                    }
+                };
+
+                watch(currentTab, () => nextTick(() => lucide.createIcons()));
+                watch(currentDay, () => nextTick(() => lucide.createIcons()));
+
+                return {
+                    loading, isOfflineMode, showSaveStatus, currentTab, currentDay, ...toRefs(dataStore), currentDayData,
+                    tabs, showModal, editingItem, form, USERS,
+                    getCategoryColor, getCategoryIcon, getTagColor, getPayerColor,
+                    openEditModal, saveItinerary, deleteItem, toggleTag, handlePhotoUpload,
+                    sortedExpenses, totalExpense, userBalances,
+                    openExpenseModal, saveExpense, deleteExpense,
+                    toggleCheck, closeModal, openGoogleMaps, resetData
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
