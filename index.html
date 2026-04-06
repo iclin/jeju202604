@@ -86,7 +86,6 @@
         <main class="flex-grow pb-28 relative z-10 overflow-y-auto">
             
             <div v-if="currentTab === 'itinerary'" class="animate-fade-in pt-6">
-                
                 <div class="px-6">
                     <div class="mb-6 pl-1">
                         <h2 class="text-2xl font-bold text-warm-900">{{ currentDayData.area || '載入中...' }}</h2>
@@ -110,7 +109,6 @@
                                     <i :data-lucide="getCategoryIcon(item.category)" width="14"></i>
                                 </div>
                             </div>
-                            
                             <label class="cursor-pointer relative">
                                 <input type="file" accept="image/*" class="hidden" @change="handlePhotoUpload($event, item.id)">
                                 <div class="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
@@ -123,24 +121,14 @@
                         <div class="pl-1 mb-3">
                             <h3 class="text-xl font-bold text-warm-900 mb-1 leading-tight">{{ item.title }}</h3>
                             <div v-if="item.tags && item.tags.length > 0" class="flex flex-wrap gap-2 mb-2">
-                                <span v-for="tag in item.tags" :key="tag" 
-                                      class="text-[10px] font-bold px-2 py-0.5 rounded-md"
-                                      :class="getTagColor(tag)">
-                                    #{{ tag }}
-                                </span>
+                                <span v-for="tag in item.tags" :key="tag" class="text-[10px] font-bold px-2 py-0.5 rounded-md" :class="getTagColor(tag)">#{{ tag }}</span>
                             </div>
                             <p class="text-warm-500 text-sm leading-relaxed">{{ item.desc }}</p>
                         </div>
 
                         <div v-if="item.parking || item.gas" class="bg-warm-50 rounded-xl p-2 mb-3 flex gap-4 text-xs text-warm-600 border border-warm-100">
-                            <div v-if="item.parking" class="flex items-center gap-1.5">
-                                <i data-lucide="circle-parking" width="14" class="text-fuji-500"></i>
-                                <span>{{ item.parking }}</span>
-                            </div>
-                            <div v-if="item.gas" class="flex items-center gap-1.5">
-                                <i data-lucide="fuel" width="14" class="text-jeju-orange"></i>
-                                <span>{{ item.gas }}</span>
-                            </div>
+                            <div v-if="item.parking" class="flex items-center gap-1.5"><i data-lucide="circle-parking" width="14" class="text-fuji-500"></i><span>{{ item.parking }}</span></div>
+                            <div v-if="item.gas" class="flex items-center gap-1.5"><i data-lucide="fuel" width="14" class="text-jeju-orange"></i><span>{{ item.gas }}</span></div>
                         </div>
 
                         <div v-if="item.photo_tip" class="border-l-4 border-yellow-300 pl-3 py-1 bg-yellow-50/50 rounded-r-lg mb-3">
@@ -156,9 +144,8 @@
                                 <button @click="deleteItem(item.id)" class="w-8 h-8 rounded-full text-red-300 hover:text-red-500 hover:bg-red-50 flex items-center justify-center transition-colors"><i data-lucide="trash-2" width="14"></i></button>
                                 <button @click="openEditModal(item)" class="w-8 h-8 rounded-full text-fuji-400 hover:text-fuji-600 hover:bg-fuji-50 flex items-center justify-center transition-colors"><i data-lucide="pencil" width="14"></i></button>
                             </div>
-                            <button @click="openGoogleMaps(item.map_query)" class="bg-fuji-500 text-white pl-3 pr-4 py-1.5 rounded-full text-xs font-bold shadow-md hover:bg-fuji-600 flex items-center gap-1.5 active:scale-95 transition-transform">
-                                <i data-lucide="navigation" width="12"></i> 
-                                Google Maps
+                            <button @click="openNaverMap(item.map_query)" class="bg-[#03C75A] text-white pl-3 pr-4 py-1.5 rounded-full text-xs font-bold shadow-md hover:bg-[#02b351] flex items-center gap-1.5 active:scale-95 transition-transform">
+                                <i data-lucide="navigation" width="12"></i> Naver Map
                             </button>
                         </div>
                     </div>
@@ -176,6 +163,43 @@
                 </div>
             </div>
 
+            <div v-if="currentTab === 'wishlist'" class="px-6 pt-6 animate-fade-in">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-warm-900">口袋名單 🧡</h2>
+                    <p class="text-warm-500 text-sm mt-1">別人建議、想去但還沒排日期的好地方</p>
+                </div>
+
+                <div v-if="wishlist.length === 0" class="text-center py-20 bg-white/60 rounded-[2rem] border border-dashed border-warm-300">
+                    <div class="text-4xl mb-3">🧺</div>
+                    <p class="text-warm-500 text-sm font-bold">口袋空空</p>
+                    <p class="text-warm-400 text-xs mt-1">點擊右下角把心動的點加進來！</p>
+                </div>
+
+                <div class="grid gap-4">
+                    <div v-for="item in wishlist" :key="item.id" class="bg-white rounded-3xl p-5 shadow-sm border border-warm-100 flex flex-col gap-3">
+                        <div class="flex justify-between items-start">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-sm" :class="getCategoryColor(item.category)">
+                                    <i :data-lucide="getCategoryIcon(item.category)" width="18"></i>
+                                </div>
+                                <h3 class="text-lg font-bold text-warm-900 leading-tight">{{ item.title }}</h3>
+                            </div>
+                            <div class="flex gap-1">
+                                <button @click="deleteWish(item.id)" class="p-2 text-warm-300 hover:text-red-400"><i data-lucide="trash-2" width="16"></i></button>
+                                <button @click="openWishEditModal(item)" class="p-2 text-warm-300 hover:text-fuji-500"><i data-lucide="pencil" width="16"></i></button>
+                            </div>
+                        </div>
+                        <p class="text-warm-500 text-xs line-clamp-2 px-1">{{ item.desc || '無描述' }}</p>
+                        <div class="flex gap-2 pt-2 border-t border-warm-50">
+                            <button @click="moveToItinerary(item)" class="flex-1 bg-fuji-100 text-fuji-600 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-fuji-200 transition-colors">
+                                <i data-lucide="plus-circle" width="14"></i> 加入行程
+                            </button>
+                            <button @click="openNaverMap(item.title)" class="px-4 bg-warm-50 text-warm-400 rounded-xl hover:bg-warm-100"><i data-lucide="map" width="14"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div v-if="currentTab === 'expense'" class="px-6 pt-6 animate-fade-in">
                 <div class="bg-gradient-to-br from-fuji-600 to-fuji-500 rounded-3xl p-5 text-white shadow-lg mb-6 relative overflow-hidden">
                     <div class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
@@ -184,7 +208,6 @@
                             <div class="text-xs font-medium opacity-80 mb-1">團隊總花費</div>
                             <div class="text-3xl font-bold tracking-tight">₩ {{ totalExpense.toLocaleString() }}</div>
                         </div>
-
                         <div class="bg-white/10 rounded-xl p-3 text-xs space-y-1 backdrop-blur-sm">
                             <div class="flex justify-between font-bold opacity-70 mb-1 border-b border-white/20 pb-1 text-[10px]">
                                 <div class="w-14">成員</div>
@@ -240,7 +263,6 @@
             </div>
 
             <div v-if="currentTab === 'tools'" class="px-6 pt-6">
-                
                 <div class="mb-8">
                     <div class="flex justify-between items-center mb-3 px-1">
                         <h2 class="text-lg font-bold text-warm-900">資料總匯 (確認單)</h2>
@@ -255,7 +277,6 @@
                             <button @click="deleteDoc(doc.id)" class="text-warm-300 hover:text-red-400 transition-colors p-1"><i data-lucide="trash-2" width="14"></i></button>
                             <button @click="openDocModal(doc)" class="text-warm-300 hover:text-fuji-500 transition-colors p-1"><i data-lucide="pencil" width="14"></i></button>
                         </div>
-                        
                         <div class="flex items-center gap-4 mb-3 pr-16">
                             <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-md flex-shrink-0" :class="doc.color">
                                 <i :data-lucide="doc.icon" width="20"></i>
@@ -280,6 +301,7 @@
                         <span class="text-sm" :class="{'line-through text-warm-300': item.checked, 'text-warm-900': !item.checked}">{{ item.text }}</span>
                     </div>
                 </div>
+                
                 <div class="bg-red-50 rounded-2xl p-5 border border-red-100">
                     <h3 class="font-bold text-red-600 mb-3 flex items-center gap-2"><i data-lucide="alert-triangle"></i> 緊急資訊 (韓國)</h3>
                     <div class="grid grid-cols-2 gap-3 text-center">
@@ -294,44 +316,39 @@
                     </button>
                 </div>
             </div>
-
         </main>
 
         <div v-if="showSaveStatus" class="fixed bottom-24 left-6 z-50 bg-black/70 text-white px-3 py-1 rounded-full text-xs animate-pulse transition-opacity duration-500">
             已儲存
         </div>
 
-        <button @click="currentTab === 'expense' ? openExpenseModal() : (currentTab === 'tools' ? openDocModal() : openEditModal())"
+        <button @click="openUniversalAdd"
             class="fixed bottom-24 right-6 w-14 h-14 bg-jeju-orange text-white rounded-full shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-40">
             <i data-lucide="plus" width="28"></i>
         </button>
 
         <div class="fixed bottom-6 left-0 right-0 flex justify-center z-50 pointer-events-none">
-            <div class="bg-white/90 backdrop-blur-xl border border-white/50 shadow-2xl rounded-full px-2 py-3 w-[90%] max-w-[380px] pointer-events-auto flex justify-between items-center h-16">
+            <div class="bg-white/90 backdrop-blur-xl border border-white/50 shadow-2xl rounded-full px-2 py-3 w-[92%] max-w-[400px] pointer-events-auto flex justify-between items-center h-16">
                 <button v-for="tab in tabs" :key="tab.id" @click="currentTab = tab.id"
                     class="flex-1 flex flex-col items-center justify-center gap-1 transition-all duration-300"
                     :class="currentTab === tab.id ? 'text-fuji-600 -translate-y-1' : 'text-warm-400 hover:text-warm-600'">
-                    <i :data-lucide="tab.icon" :width="24"></i>
-                    <span class="text-[10px] font-bold" :class="currentTab === tab.id ? 'opacity-100' : 'opacity-0 hidden'">{{ tab.label }}</span>
+                    <i :data-lucide="tab.icon" :width="22"></i>
+                    <span class="text-[9px] font-bold" :class="currentTab === tab.id ? 'opacity-100' : 'opacity-0 hidden'">{{ tab.label }}</span>
                 </button>
             </div>
         </div>
 
         <div v-if="showModal" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" @click.self="closeModal">
             
-            <div v-if="currentTab === 'itinerary'" class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl animate-fade-in max-h-[90vh] overflow-y-auto">
+            <div v-if="currentTab === 'itinerary' || moveFromWish" class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl animate-fade-in max-h-[90vh] overflow-y-auto">
                 <h3 class="text-xl font-bold text-warm-900 mb-4">{{ editingItem ? '修改行程' : '新增行程' }}</h3>
                 <form @submit.prevent="saveItinerary" class="space-y-4">
-                    
                     <div>
                         <label class="block text-xs font-bold text-warm-500 mb-1">選擇日期</label>
-                        <select v-model="form.day" class="w-full bg-warm-50 rounded-xl px-3 py-2 border border-warm-200 text-sm font-bold text-fuji-600">
-                            <option v-for="day in itinerary" :key="day.day" :value="day.day">
-                                Day {{ day.day }} - {{ day.date.split(' ')[0] || day.date }} ({{ day.weekday.replace('週', '') }})
-                            </option>
+                        <select v-model="form.day" class="w-full bg-warm-50 rounded-xl px-3 py-2 border border-warm-200 text-sm font-bold text-fuji-600" required>
+                            <option v-for="day in itinerary" :key="day.day" :value="day.day">Day {{ day.day }} - {{ day.date.split(' ')[0] || day.date }}</option>
                         </select>
                     </div>
-
                     <div class="flex gap-4">
                         <div class="w-1/3">
                             <label class="block text-xs font-bold text-warm-500 mb-1">時間</label>
@@ -364,7 +381,26 @@
                         <button type="button" @click="toggleTag('必拍')" :class="form.tags.includes('必拍') ? 'bg-fuji-500 text-white' : 'bg-gray-100'" class="px-3 py-1 rounded-full transition-colors">必拍</button>
                     </div>
 
-                    <button type="submit" class="w-full bg-fuji-500 text-white font-bold py-3 rounded-xl shadow-md">確認儲存</button>
+                    <button type="submit" class="w-full bg-fuji-500 text-white font-bold py-3 rounded-xl shadow-md">確認存入行程</button>
+                </form>
+            </div>
+
+            <div v-if="currentTab === 'wishlist' && !moveFromWish" class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl animate-fade-in max-h-[90vh] overflow-y-auto">
+                <h3 class="text-xl font-bold text-warm-900 mb-4">{{ editingItem ? '修改收藏' : '新增口袋清單' }} 🧺</h3>
+                <form @submit.prevent="saveWish" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-warm-500 mb-1">類別</label>
+                        <div class="flex gap-2">
+                            <button v-for="cat in ['spot','food','shopping']" :key="cat" type="button" @click="form.category = cat" 
+                                    :class="form.category === cat ? 'bg-fuji-500 text-white border-fuji-500' : 'bg-white text-warm-400 border-warm-200'" 
+                                    class="flex-1 py-2 border rounded-xl text-xs font-bold">
+                                {{ cat==='spot'?'景點':cat==='food'?'餐廳':'購物' }}
+                            </button>
+                        </div>
+                    </div>
+                    <input v-model="form.title" type="text" placeholder="景點或店名" class="w-full bg-warm-50 rounded-xl px-3 py-2 border border-warm-200 font-bold" required>
+                    <textarea v-model="form.desc" placeholder="推薦原因、預約連結等..." rows="4" class="w-full bg-warm-50 rounded-xl px-3 py-2 border border-warm-200 text-sm leading-relaxed"></textarea>
+                    <button type="submit" class="w-full bg-jeju-orange text-white font-bold py-3 rounded-xl shadow-md">收入口袋</button>
                 </form>
             </div>
 
@@ -375,7 +411,6 @@
                         <label class="block text-xs font-bold text-warm-500 mb-1">項目名稱</label>
                         <input v-model="form.title" type="text" placeholder="例：黑豬肉晚餐" class="w-full bg-warm-50 rounded-xl px-3 py-2 border border-warm-200" required>
                     </div>
-                    
                     <div class="flex gap-3">
                         <div class="w-2/3">
                             <label class="block text-xs font-bold text-warm-500 mb-1">總金額 (KRW)</label>
@@ -388,7 +423,6 @@
                             </select>
                         </div>
                     </div>
-
                     <div>
                         <label class="block text-xs font-bold text-warm-500 mb-2">誰要分攤這筆錢？</label>
                         <div class="flex flex-wrap gap-2">
@@ -404,7 +438,6 @@
                             </label>
                         </div>
                     </div>
-
                     <div class="flex gap-2 text-xs pt-2 border-t border-warm-100">
                         <button type="button" @click="form.category='food'" :class="form.category==='food'?'bg-fuji-100 text-fuji-600 border-fuji-500':'bg-white text-warm-400'" class="flex-1 py-2 border rounded-lg">食</button>
                         <button type="button" @click="form.category='transport'" :class="form.category==='transport'?'bg-fuji-100 text-fuji-600 border-fuji-500':'bg-white text-warm-400'" class="flex-1 py-2 border rounded-lg">行</button>
@@ -414,7 +447,7 @@
                 </form>
             </div>
 
-            <div v-if="currentTab === 'tools'" class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl animate-fade-in max-h-[90vh] overflow-y-auto">
+            <div v-if="currentTab === 'tools' && !editingItem && !moveFromWish" class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl animate-fade-in max-h-[90vh] overflow-y-auto">
                 <h3 class="text-xl font-bold text-warm-900 mb-4">{{ editingItem ? '修改資料' : '新增資料' }} 📋</h3>
                 <form @submit.prevent="saveDoc" class="space-y-4">
                     <div>
@@ -456,6 +489,47 @@
                 </form>
             </div>
 
+            <div v-if="currentTab === 'tools' && editingItem && !moveFromWish" class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl animate-fade-in max-h-[90vh] overflow-y-auto">
+                <h3 class="text-xl font-bold text-warm-900 mb-4">修改資料 📋</h3>
+                <form @submit.prevent="saveDoc" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-warm-500 mb-1">標題</label>
+                        <input v-model="docForm.title" type="text" placeholder="例：航班資訊" class="w-full bg-warm-50 rounded-xl px-3 py-2 border border-warm-200 font-bold" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-warm-500 mb-1">副標題 (選填)</label>
+                        <input v-model="docForm.subtitle" type="text" placeholder="例：大韓航空" class="w-full bg-warm-50 rounded-xl px-3 py-2 border border-warm-200">
+                    </div>
+                    <div class="flex gap-3">
+                        <div class="w-1/2">
+                            <label class="block text-xs font-bold text-warm-500 mb-1">圖示</label>
+                            <select v-model="docForm.icon" class="w-full bg-warm-50 rounded-xl px-3 py-2 border border-warm-200 text-sm">
+                                <option value="plane">✈️ 飛機</option>
+                                <option value="car">🚗 汽車</option>
+                                <option value="hotel">🛏️ 飯店</option>
+                                <option value="file-text">📄 文件</option>
+                                <option value="ticket">🎫 票券</option>
+                                <option value="credit-card">💳 信用卡</option>
+                            </select>
+                        </div>
+                        <div class="w-1/2">
+                            <label class="block text-xs font-bold text-warm-500 mb-1">顏色主題</label>
+                            <select v-model="docForm.color" class="w-full bg-warm-50 rounded-xl px-3 py-2 border border-warm-200 text-sm">
+                                <option value="bg-fuji-500">藍色</option>
+                                <option value="bg-jeju-orange">橘色</option>
+                                <option value="bg-jeju-green">綠色</option>
+                                <option value="bg-jeju-pink">粉色</option>
+                                <option value="bg-warm-500">灰色</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-warm-500 mb-1">詳細內容 (可換行)</label>
+                        <textarea v-model="docForm.content" placeholder="輸入詳細資訊，換行會自動保留排版..." rows="6" class="w-full bg-warm-50 rounded-xl px-3 py-2 border border-warm-200 text-sm leading-relaxed" required></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-fuji-500 text-white font-bold py-3 rounded-xl shadow-md hover:bg-fuji-600 transition-colors">確認儲存</button>
+                </form>
+            </div>
         </div>
 
     </div>
@@ -483,27 +557,23 @@
                 const currentDay = ref(1);
                 const showModal = ref(false);
                 const editingItem = ref(null);
+                const moveFromWish = ref(false); 
                 const isOfflineMode = ref(false); 
                 const showSaveStatus = ref(false);
                 
                 const USERS = ["LIN", "CHANG", "Timothy", "小7"];
 
                 const form = reactive({ 
-                    day: 1, 
-                    title: '', time: '12:00', category: 'spot', desc: '', amount: '', 
-                    payer: 'LIN', sharedBy: [...USERS],
-                    tags: [], parking: '', gas: '', photo_tip: '' 
+                    day: 1, title: '', time: '12:00', category: 'spot', desc: '', amount: '', payer: 'LIN', sharedBy: [...USERS], tags: [], parking: '', gas: '', photo_tip: '', wishIdToDelete: null 
                 });
 
-                // Documents Form
-                const docForm = reactive({
-                    id: null, title: '', subtitle: '', icon: 'file-text', color: 'bg-warm-500', content: ''
-                });
+                const docForm = reactive({ id: null, title: '', subtitle: '', icon: 'file-text', color: 'bg-warm-500', content: '' });
 
                 const dataStore = reactive({
                     itinerary: [], 
                     expenses: [],
-                    documents: [], // 新增 documents 陣列
+                    documents: [], 
+                    wishlist: [], 
                     checklist: [
                         { text: "護照 (效期6個月)", checked: false },
                         { text: "國際駕照 (IDP)", checked: false },
@@ -528,12 +598,11 @@
                         weather_tip: "⛅ 多雲偶晴 (18°C)\n適合海邊散步，建議穿舒適平底鞋。",
                         items: [
                             { id: 201, time: "10:40", title: "金浦機場 (GMP) 出發", desc: "KE1075 大韓航空 (LIN, CHANG)", category: "transport", tags: ["航班"], map_query: "Gimpo International Airport" },
-                            { id: 202, time: "11:55", title: "抵達濟州機場 (CJU)", desc: "LIN, CHANG 抵達", category: "transport", tags: ["航班"], map_query: "Jeju International Airport" },
-                            { id: 203, time: "12:30", title: "樂天租車 (取車)", desc: "SONATA (G) Ref: 2622095402", category: "transport", tags: ["租車"], parking: "", gas: "滿油取車", photo_tip: "記得拍下車身刮痕存證！", map_query: "Lotte Rent-a-Car Jeju" },
-                            { id: 204, time: "14:25", title: "桃園機場 (TPE) 出發", desc: "TW688 德威航空 (Timothy, 小7)", category: "transport", tags: ["航班"], map_query: "Taoyuan International Airport" },
-                            { id: 205, time: "15:00", title: "涯月海邊咖啡", desc: "Handam Coastal Walk 散步", category: "food", tags: ["必拍", "必吃"], parking: "專用停車場(免費)", gas: "", photo_tip: "坐在戶外透明椅上，以大海為背景。", map_query: "Aewol Cafe Street" },
-                            { id: 206, time: "17:30", title: "抵達濟州機場 (CJU)", desc: "Timothy, 小7 抵達會合", category: "transport", tags: ["航班"], map_query: "Jeju International Airport" },
-                            { id: 207, time: "18:30", title: "Casaloma Hotel", desc: "Check-in (南部連住2晚)", category: "hotel", tags: ["住宿"], parking: "飯店停車場", map_query: "Casaloma Hotel Jeju" }
+                            { id: 202, time: "12:30", title: "樂天租車 (取車)", desc: "SANTAFE 4WD (G) 7P Ref: 2622174376", category: "transport", tags: ["租車"], parking: "", gas: "滿油取車", photo_tip: "記得拍下車身刮痕存證！", map_query: "Lotte Rent-a-Car Jeju" },
+                            { id: 203, time: "14:25", title: "桃園機場 (TPE) 出發", desc: "TW688 德威航空 (Timothy, 小7)", category: "transport", tags: ["航班"], map_query: "Taoyuan International Airport" },
+                            { id: 204, time: "15:00", title: "涯月海邊咖啡", desc: "Handam Coastal Walk 散步", category: "food", tags: ["必拍", "必吃"], parking: "專用停車場(免費)", gas: "", photo_tip: "坐在戶外透明椅上，以大海為背景。", map_query: "Aewol Cafe Street" },
+                            { id: 205, time: "17:30", title: "抵達濟州機場 (CJU)", desc: "Timothy, 小7 抵達會合", category: "transport", tags: ["航班"], map_query: "Jeju International Airport" },
+                            { id: 206, time: "18:30", title: "Casaloma Hotel", desc: "Check-in (南部連住2晚)", category: "hotel", tags: ["住宿"], parking: "飯店停車場", map_query: "Casaloma Hotel Jeju" }
                         ] 
                     },
                     { 
@@ -561,7 +630,7 @@
                             { id: 801, time: "11:00", title: "Hotel Leo", desc: "退房 (Check-out)", category: "hotel", tags: ["退房"], map_query: "Hotel Leo Jeju" },
                             { id: 802, time: "12:20", title: "濟州機場 (CJU) 出發", desc: "TW687 德威航空 (Timothy, 小7)", category: "transport", tags: ["航班"], map_query: "Jeju International Airport" },
                             { id: 803, time: "13:25", title: "抵達桃園機場 (TPE)", desc: "Timothy, 小7 賦歸", category: "transport", tags: ["航班"], map_query: "Taoyuan International Airport" },
-                            { id: 804, time: "16:30", title: "樂天租車 (還車)", desc: "歸還車輛，搭接駁車去機場 (LIN, CHANG)", category: "transport", tags: ["還車"], gas: "滿油還車", map_query: "Lotte Rent-a-Car Jeju" },
+                            { id: 804, time: "17:00", title: "樂天租車 (還車)", desc: "歸還車輛，搭接駁車去機場 (LIN, CHANG)", category: "transport", tags: ["還車"], gas: "滿油還車", map_query: "Lotte Rent-a-Car Jeju" },
                             { id: 805, time: "19:35", title: "濟州機場 (CJU) 出發", desc: "KE1312 飛往金浦 (LIN, CHANG)", category: "transport", tags: ["航班"], map_query: "Jeju International Airport" },
                             { id: 806, time: "20:50", title: "抵達金浦機場 (GMP)", desc: "返回首爾", category: "transport", tags: ["航班"], map_query: "Gimpo International Airport" },
                             { id: 807, time: "22:00", title: "Lotte City Hotel Gimpo Airport", desc: "Check-in", category: "hotel", tags: ["住宿"], map_query: "Lotte City Hotel Gimpo Airport" }
@@ -581,11 +650,11 @@
                 const initialDocuments = [
                     { id: 1, icon: 'plane', color: 'bg-fuji-500', title: '航班資訊 (LIN & CHANG)', subtitle: '大韓航空 (台中 ↔ 首爾 ↔ 濟州)', content: "04.07 台中-仁川: KE2032 (17:55-21:35)\n04.08 金浦-濟州: KE1075 (10:40-11:55)\n04.14 濟州-金浦: KE1312 (19:35-20:50)\n04.15 仁川-台中: KE2031 (14:45-16:45)\n\nRef No. (LIN): EU4QD7\nRef No. (CHANG): EU5M6C" },
                     { id: 2, icon: 'plane', color: 'bg-fuji-600', title: '航班資訊 (Timothy & 小7)', subtitle: '德威航空 (桃園 ↔ 濟州)', content: "04.08 桃園-濟州: TW688 (14:25-17:30)\n04.14 濟州-桃園: TW687 (12:20-13:25)\n\nRef No.: SJ62M3" },
-                    { id: 3, icon: 'car', color: 'bg-jeju-orange', title: '樂天租車 (自駕)', subtitle: 'SONATA (G) 4/8 - 4/14', content: "取車：04.08 12:30\n還車：04.14 17:00\n費用：492,000 KRW\n預約號碼：2622095402" },
+                    { id: 3, icon: 'car', color: 'bg-jeju-orange', title: '樂天租車 (自駕)', subtitle: 'SANTAFE 4WD (G) 7P 4/8 - 4/14', content: "取車：04.08 12:30\n還車：04.14 17:00\n費用：633,800 KRW\n預約號碼：2622174376" },
                     { id: 4, icon: 'hotel', color: 'bg-jeju-green', title: '住宿清單', subtitle: '全程住宿確認', content: "4/7 - 4/8：Lotte City Hotel Gimpo Airport\n4/8 - 4/10：Casaloma Hotel\n4/10 - 4/14：Hotel Leo\n4/14 - 4/15：Lotte City Hotel Gimpo Airport" }
                 ];
 
-                const TRIP_DOC_ID = 'jeju_trip_2026_v1';
+                const TRIP_DOC_ID = 'jeju_trip_2026_v2';
                 let db = null;
 
                 onMounted(() => {
@@ -605,134 +674,137 @@
                         onSnapshot(doc(db, "trips", TRIP_DOC_ID), (docSnap) => {
                             if (docSnap.exists()) {
                                 const data = docSnap.data();
-                                if (!data.itinerary || data.itinerary.length === 0) {
-                                    if (dataStore.itinerary.length === 0) dataStore.itinerary = initialItinerary;
-                                } else {
-                                    dataStore.itinerary = data.itinerary;
-                                }
+                                dataStore.itinerary = data.itinerary || dataStore.itinerary;
                                 dataStore.expenses = data.expenses || [];
-                                dataStore.documents = data.documents && data.documents.length > 0 ? data.documents : initialDocuments;
+                                dataStore.documents = data.documents || [];
+                                dataStore.wishlist = data.wishlist || [];
                                 dataStore.checklist = data.checklist || dataStore.checklist;
-                            } else {
-                                saveData(); 
-                            }
+                            } else { saveData(); }
+                            loading.value = false;
                             nextTick(() => lucide.createIcons());
-                        }, (error) => {
-                            console.error("🔥 Firebase 連線失敗:", error);
-                            isOfflineMode.value = true; 
-                        });
+                        }, (err) => { isOfflineMode.value = true; loading.value = false; });
 
-                    } catch (e) {
-                        console.error("Firebase Init Error:", e);
-                        isOfflineMode.value = true;
-                    }
+                    } catch (e) { isOfflineMode.value = true; loading.value = false; }
                 });
+
+                const saveData = async () => {
+                    localStorage.setItem(TRIP_DOC_ID, JSON.stringify(dataStore));
+                    showSaveStatus.value = true; setTimeout(() => showSaveStatus.value = false, 2000);
+                    if (isOfflineMode.value || !db) return;
+                    try { await setDoc(doc(db, "trips", TRIP_DOC_ID), { ...dataStore }); } catch (e) {}
+                };
 
                 const loadFromLocal = () => {
                     const localData = localStorage.getItem(TRIP_DOC_ID);
                     if (localData) {
-                        try {
-                            const parsed = JSON.parse(localData);
-                            dataStore.itinerary = (!parsed.itinerary || parsed.itinerary.length === 0) ? initialItinerary : parsed.itinerary;
-                            dataStore.expenses = parsed.expenses || [];
-                            dataStore.documents = (!parsed.documents || parsed.documents.length === 0) ? initialDocuments : parsed.documents;
-                            dataStore.checklist = parsed.checklist || dataStore.checklist;
-                        } catch (e) {
-                            dataStore.itinerary = initialItinerary;
-                            dataStore.documents = initialDocuments;
-                        }
+                        const parsed = JSON.parse(localData);
+                        Object.assign(dataStore, parsed);
                     } else {
                         dataStore.itinerary = initialItinerary;
                         dataStore.documents = initialDocuments;
                     }
                     loading.value = false;
-                    nextTick(() => lucide.createIcons());
                 };
 
-                const saveData = async () => {
-                    localStorage.setItem(TRIP_DOC_ID, JSON.stringify(dataStore));
-                    showSaveStatus.value = true;
-                    setTimeout(() => showSaveStatus.value = false, 2000);
-
-                    if (isOfflineMode.value || !db) return;
-                    try {
-                        await setDoc(doc(db, "trips", TRIP_DOC_ID), { ...dataStore });
-                    } catch (e) { console.error("Save to Cloud failed", e); }
-                };
-
-                const currentDayData = computed(() => {
-                    const found = dataStore.itinerary.find(d => d.day === currentDay.value);
-                    if (found) return found;
-                    return { day: currentDay.value, date: '', weekday: '', area: '', weather_tip: '', items: [] };
-                });
-                
-                const sortedExpenses = computed(() => [...dataStore.expenses].sort((a, b) => b.id - a.id)); 
-                const totalExpense = computed(() => dataStore.expenses.reduce((acc, cur) => acc + cur.amount, 0));
-
-                const userBalances = computed(() => {
-                    return USERS.map(user => {
-                        let paid = 0; 
-                        let owed = 0; 
-
-                        dataStore.expenses.forEach(exp => {
-                            if (exp.payer === user) {
-                                paid += exp.amount;
-                            }
-                            const sharedBy = exp.sharedBy && exp.sharedBy.length > 0 ? exp.sharedBy : USERS;
-                            if (sharedBy.includes(user)) {
-                                owed += (exp.amount / sharedBy.length);
-                            }
-                        });
-
-                        const balance = paid - owed;
-                        return { name: user, paid, owed, balance };
-                    });
-                });
-
+                // --- Methods ---
                 const tabs = [
                     { id: 'itinerary', label: '行程', icon: 'map' },
+                    { id: 'wishlist', label: '口袋', icon: 'heart' },
                     { id: 'expense', label: '分帳', icon: 'wallet' },
                     { id: 'tools', label: '工具', icon: 'briefcase' }
                 ];
 
-                const getCategoryColor = (cat) => {
-                    const map = { spot: 'bg-fuji-500', food: 'bg-jeju-orange', shopping: 'bg-jeju-pink', transport: 'bg-slate-500', hotel: 'bg-indigo-500' };
-                    return map[cat] || 'bg-gray-400';
-                };
-                const getCategoryIcon = (cat) => {
-                    const map = { spot: 'camera', food: 'utensils', shopping: 'shopping-bag', transport: 'plane', hotel: 'bed' };
-                    return map[cat] || 'circle';
-                };
-                
-                const getTagColor = (tag) => {
-                    if (tag === '必吃') return 'bg-jeju-orange text-white';
-                    if (tag === '必買') return 'bg-jeju-pink text-white';
-                    if (tag === '必拍') return 'bg-fuji-500 text-white';
-                    return 'bg-gray-100 text-gray-500';
-                };
-
-                const getPayerColor = (payer) => {
-                    const colors = {
-                        'LIN': 'bg-blue-100 text-blue-600',
-                        'CHANG': 'bg-pink-100 text-pink-600',
-                        'Timothy': 'bg-green-100 text-green-600',
-                        '小7': 'bg-purple-100 text-purple-600'
-                    };
-                    return colors[payer] || 'bg-gray-100 text-gray-600';
+                const openUniversalAdd = () => {
+                    editingItem.value = null;
+                    moveFromWish.value = false;
+                    if (currentTab.value === 'itinerary') {
+                        Object.assign(form, { day: currentDay.value, title: '', time: '12:00', category: 'spot', desc: '', tags: [], parking: '', gas: '', photo_tip: '', wishIdToDelete: null });
+                    } else if (currentTab.value === 'wishlist') {
+                        Object.assign(form, { title: '', category: 'spot', desc: '' });
+                    } else if (currentTab.value === 'expense') {
+                        Object.assign(form, { title: '', amount: '', payer: 'LIN', sharedBy: [...USERS] });
+                    } else if (currentTab.value === 'tools') {
+                        Object.assign(docForm, { id: null, title: '', subtitle: '', icon: 'file-text', color: 'bg-warm-500', content: '' });
+                    }
+                    showModal.value = true;
                 };
 
-                // Form Modal Openers
+                const saveWish = () => {
+                    const newItem = { ...form, id: editingItem.value ? editingItem.value.id : Date.now() };
+                    if (editingItem.value) {
+                        const idx = dataStore.wishlist.findIndex(w => w.id === editingItem.value.id);
+                        if (idx !== -1) dataStore.wishlist[idx] = newItem;
+                    } else { dataStore.wishlist.push(newItem); }
+                    saveData(); closeModal();
+                };
+
+                const openWishEditModal = (item) => {
+                    editingItem.value = item;
+                    Object.assign(form, item);
+                    showModal.value = true;
+                };
+
+                const deleteWish = (id) => { if (confirm("確定刪除收藏?")) { dataStore.wishlist = dataStore.wishlist.filter(w => w.id !== id); saveData(); } };
+
+                const moveToItinerary = (item) => {
+                    editingItem.value = null; 
+                    moveFromWish.value = true; 
+                    Object.assign(form, { 
+                        day: currentDay.value, title: item.title, desc: item.desc, category: item.category, time: '12:00',
+                        wishIdToDelete: item.id, tags: [], parking: '', gas: '', photo_tip: ''
+                    });
+                    showModal.value = true;
+                };
+
+                const saveItinerary = () => {
+                    if (editingItem.value && !moveFromWish.value) {
+                        dataStore.itinerary.forEach(d => { d.items = d.items.filter(i => i.id !== editingItem.value.id); });
+                    }
+                    const targetDayIndex = dataStore.itinerary.findIndex(d => d.day === form.day);
+                    if (targetDayIndex !== -1) {
+                        const newItem = { ...form, id: (editingItem.value && !moveFromWish.value) ? editingItem.value.id : Date.now(), map_query: form.title, hasPhoto: (editingItem.value && !moveFromWish.value) ? editingItem.value.hasPhoto : false };
+                        delete newItem.day;
+                        delete newItem.wishIdToDelete;
+                        dataStore.itinerary[targetDayIndex].items.push(newItem);
+                        dataStore.itinerary[targetDayIndex].items.sort((a, b) => a.time.localeCompare(b.time));
+                        
+                        if (form.wishIdToDelete) {
+                            dataStore.wishlist = dataStore.wishlist.filter(w => w.id !== form.wishIdToDelete);
+                        }
+                    }
+                    currentDay.value = form.day;
+                    saveData(); closeModal();
+                };
+
+                const saveExpense = () => {
+                    if (form.sharedBy.length === 0) { alert("請至少選擇一位分攤人！"); return; }
+                    const newItem = { ...form, id: editingItem.value ? editingItem.value.id : Date.now(), date: editingItem.value ? editingItem.value.date : new Date().toLocaleDateString('en-US', {month:'2-digit', day:'2-digit'}).replace('/', '/') };
+                    if (editingItem.value) {
+                        const idx = dataStore.expenses.findIndex(e => e.id === editingItem.value.id);
+                        if (idx !== -1) dataStore.expenses[idx] = newItem;
+                    } else { dataStore.expenses.push(newItem); }
+                    saveData(); closeModal();
+                };
+
+                const saveDoc = () => {
+                    const newDoc = { ...docForm, id: editingItem.value ? editingItem.value.id : Date.now() };
+                    if (editingItem.value) {
+                        const idx = dataStore.documents.findIndex(d => d.id === editingItem.value.id);
+                        if (idx !== -1) dataStore.documents[idx] = newDoc;
+                    } else { dataStore.documents.push(newDoc); }
+                    saveData(); closeModal();
+                };
+
+                const deleteItem = (id) => { if(confirm("確定刪除?")) { const day = dataStore.itinerary.find(d => d.day === currentDay.value); day.items = day.items.filter(i => i.id !== id); saveData(); } };
+                const deleteExpense = (id) => { if(confirm("確定刪除這筆消費嗎?")) { dataStore.expenses = dataStore.expenses.filter(e => e.id !== id); saveData(); } };
+                const deleteDoc = (id) => { if(confirm("確定刪除這份資料嗎?")) { dataStore.documents = dataStore.documents.filter(d => d.id !== id); saveData(); } };
+
                 const openEditModal = (item = null) => {
                     editingItem.value = item;
                     if (item) {
                         Object.assign(form, { ...item, tags: item.tags || [] });
                         const day = dataStore.itinerary.find(d => d.items.some(i => i.id === item.id));
                         form.day = day ? day.day : currentDay.value;
-                    } else {
-                        Object.assign(form, { 
-                            day: currentDay.value,
-                            title: '', time: '12:00', category: 'spot', desc: '', id: null, tags: [], parking: '', gas: '', photo_tip: '' 
-                        });
                     }
                     showModal.value = true;
                 };
@@ -742,117 +814,47 @@
                     if (item) {
                         const sharedBy = item.sharedBy && item.sharedBy.length > 0 ? item.sharedBy : [...USERS];
                         Object.assign(form, { ...item, sharedBy });
-                    } else {
-                        Object.assign(form, { title: '', amount: '', category: 'food', payer: 'LIN', sharedBy: [...USERS], id: null });
                     }
                     showModal.value = true;
                 };
 
                 const openDocModal = (item = null) => {
                     editingItem.value = item;
-                    if (item) {
-                        Object.assign(docForm, item);
-                    } else {
-                        Object.assign(docForm, { id: null, title: '', subtitle: '', icon: 'file-text', color: 'bg-warm-500', content: '' });
-                    }
+                    if (item) Object.assign(docForm, item);
                     showModal.value = true;
                 };
 
-                const toggleTag = (tag) => {
-                    if (form.tags.includes(tag)) {
-                        form.tags = form.tags.filter(t => t !== tag);
-                    } else {
-                        form.tags.push(tag);
-                    }
-                };
+                const closeModal = () => { showModal.value = false; moveFromWish.value = false; };
+                const getCategoryColor = (cat) => { const map = { spot: 'bg-fuji-500', food: 'bg-jeju-orange', shopping: 'bg-jeju-pink', transport: 'bg-slate-500', hotel: 'bg-indigo-500' }; return map[cat] || 'bg-gray-400'; };
+                const getCategoryIcon = (cat) => { const map = { spot: 'camera', food: 'utensils', shopping: 'shopping-bag', transport: 'plane', hotel: 'bed' }; return map[cat] || 'circle'; };
+                const getTagColor = (tag) => { if (tag === '必吃') return 'bg-jeju-orange text-white'; if (tag === '必買') return 'bg-jeju-pink text-white'; if (tag === '必拍') return 'bg-fuji-500 text-white'; return 'bg-gray-100 text-gray-500'; };
+                const getPayerColor = (payer) => { const colors = { 'LIN': 'bg-blue-100 text-blue-600', 'CHANG': 'bg-pink-100 text-pink-600', 'Timothy': 'bg-green-100 text-green-600', '小7': 'bg-purple-100 text-purple-600' }; return colors[payer] || 'bg-gray-100 text-gray-600'; };
+                const openNaverMap = (q) => window.open(`https://map.naver.com/v5/search/${encodeURIComponent(q)}`, '_blank');
+                const toggleCheck = (idx) => { dataStore.checklist[idx].checked = !dataStore.checklist[idx].checked; saveData(); };
+                const handlePhotoUpload = (event, itemId) => { const dayIdx = dataStore.itinerary.findIndex(d => d.day === currentDay.value); const item = dataStore.itinerary[dayIdx].items.find(i => i.id === itemId); if (item) { item.hasPhoto = true; saveData(); alert("📸 照片上傳成功！(模擬)"); } };
 
-                // Save Methods
-                const saveItinerary = () => {
-                    if (editingItem.value) {
-                        dataStore.itinerary.forEach(d => { d.items = d.items.filter(i => i.id !== editingItem.value.id); });
-                    }
-                    const targetDayIndex = dataStore.itinerary.findIndex(d => d.day === form.day);
-                    if (targetDayIndex !== -1) {
-                        const newItem = { ...form, id: editingItem.value ? editingItem.value.id : Date.now(), map_query: form.title, hasPhoto: editingItem.value ? editingItem.value.hasPhoto : false };
-                        delete newItem.day;
-                        dataStore.itinerary[targetDayIndex].items.push(newItem);
-                        dataStore.itinerary[targetDayIndex].items.sort((a, b) => a.time.localeCompare(b.time));
-                    }
-                    currentDay.value = form.day;
-                    saveData();
-                    closeModal();
-                };
-
-                const saveExpense = () => {
-                    if (form.sharedBy.length === 0) { alert("請至少選擇一位分攤人！"); return; }
-                    const newItem = { ...form, id: editingItem.value ? editingItem.value.id : Date.now(), date: editingItem.value ? editingItem.value.date : new Date().toLocaleDateString('en-US', {month:'2-digit', day:'2-digit'}).replace('/', '/') };
-                    if (editingItem.value) {
-                        const idx = dataStore.expenses.findIndex(e => e.id === editingItem.value.id);
-                        if (idx !== -1) dataStore.expenses[idx] = newItem;
-                    } else {
-                        dataStore.expenses.push(newItem);
-                    }
-                    saveData();
-                    closeModal();
-                };
-
-                const saveDoc = () => {
-                    const newDoc = { ...docForm, id: editingItem.value ? editingItem.value.id : Date.now() };
-                    if (editingItem.value) {
-                        const idx = dataStore.documents.findIndex(d => d.id === editingItem.value.id);
-                        if (idx !== -1) dataStore.documents[idx] = newDoc;
-                    } else {
-                        dataStore.documents.push(newDoc);
-                    }
-                    saveData();
-                    closeModal();
-                };
-
-                // Delete Methods
-                const deleteItem = (id) => {
-                    if(!confirm("確定刪除?")) return;
-                    const day = dataStore.itinerary.find(d => d.day === currentDay.value);
-                    day.items = day.items.filter(i => i.id !== id);
-                    saveData();
-                };
-
-                const deleteExpense = (id) => {
-                    if(!confirm("確定刪除這筆消費嗎?")) return;
-                    dataStore.expenses = dataStore.expenses.filter(e => e.id !== id);
-                    saveData();
-                };
-
-                const deleteDoc = (id) => {
-                    if(!confirm("確定刪除這份資料嗎?")) return;
-                    dataStore.documents = dataStore.documents.filter(d => d.id !== id);
-                    saveData();
-                };
-
-                // Misc Methods
-                const handlePhotoUpload = (event, itemId) => {
-                    const dayIdx = dataStore.itinerary.findIndex(d => d.day === currentDay.value);
-                    const item = dataStore.itinerary[dayIdx].items.find(i => i.id === itemId);
-                    if (item) {
-                        item.hasPhoto = true;
-                        saveData();
-                        alert("📸 照片上傳成功！(模擬)");
-                    }
-                };
-
-                const toggleCheck = (idx) => {
-                    dataStore.checklist[idx].checked = !dataStore.checklist[idx].checked;
-                    saveData();
-                };
-
-                const closeModal = () => { showModal.value = false; };
-                const openGoogleMaps = (query) => { window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`, '_blank'); };
+                const userBalances = computed(() => {
+                    return USERS.map(user => {
+                        let paid = 0, owed = 0;
+                        dataStore.expenses.forEach(exp => {
+                            if (exp.payer === user) paid += exp.amount;
+                            const sharedBy = exp.sharedBy || USERS;
+                            if (sharedBy.includes(user)) owed += (exp.amount / sharedBy.length);
+                        });
+                        return { name: user, paid, owed, balance: paid - owed };
+                    });
+                });
+                const totalExpense = computed(() => dataStore.expenses.reduce((acc, cur) => acc + cur.amount, 0));
+                const currentDayData = computed(() => dataStore.itinerary.find(d => d.day === currentDay.value) || { items: [] });
+                const sortedExpenses = computed(() => [...dataStore.expenses].sort((a, b) => b.id - a.id));
 
                 const resetData = () => {
                     if(confirm("確定要重置所有行程嗎？這會刪除您所有的修改！")) {
                         dataStore.itinerary = JSON.parse(JSON.stringify(initialItinerary)); 
                         dataStore.documents = JSON.parse(JSON.stringify(initialDocuments)); 
+                        dataStore.wishlist = [];
                         saveData();
-                        alert("已重置行程！請重新整理頁面。");
+                        alert("已重置為初始行程！");
                         window.location.reload();
                     }
                 };
@@ -862,13 +864,13 @@
 
                 return {
                     loading, isOfflineMode, showSaveStatus, currentTab, currentDay, ...toRefs(dataStore), currentDayData,
-                    tabs, showModal, editingItem, form, docForm, USERS,
+                    tabs, showModal, editingItem, moveFromWish, form, docForm, USERS,
                     getCategoryColor, getCategoryIcon, getTagColor, getPayerColor,
-                    openEditModal, saveItinerary, deleteItem, toggleTag, handlePhotoUpload,
+                    openUniversalAdd, saveItinerary, saveWish, openWishEditModal, deleteWish, moveToItinerary,
                     openDocModal, saveDoc, deleteDoc,
                     sortedExpenses, totalExpense, userBalances,
                     openExpenseModal, saveExpense, deleteExpense,
-                    toggleCheck, closeModal, openGoogleMaps, resetData
+                    toggleCheck, closeModal, openNaverMap, resetData
                 };
             }
         }).mount('#app');
